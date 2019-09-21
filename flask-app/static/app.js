@@ -1,3 +1,5 @@
+// -*- mode: js; js-indent-level: 2; -*-
+
 var app = new Vue({
   el: '#wordapp',
   data: {
@@ -20,6 +22,7 @@ var app = new Vue({
     daily: [],
     nmax: 20,
     bookList: [],
+    bookSelected: "",
     skipNewWords: false,
   },
   computed: {
@@ -33,9 +36,14 @@ var app = new Vue({
         console.log("the last is:", this.filterWords.length);
 	return Math.floor(this.filterWords.length / this.wordsPerPage) * this.wordsPerPage;
     },
+    wordInSelectedBook: function () {
+      var self = this;
+      return this.words.filter(function(w) {
+	return (self.bookSelected == "" || w.books.indexOf(self.bookSelected) >= 0); });
+    },
     filterWords: function() {
 	var self = this;
-	return this.words.filter(function(w) { return !(self.skipNewWords && ! w.dateStudy); });
+	return this.wordInSelectedBook.filter(function(w) { return !(self.skipNewWords && ! w.dateStudy); });
     },
   },
   watch: {
