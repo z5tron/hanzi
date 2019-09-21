@@ -1,0 +1,60 @@
+.main-charword {
+    font-size: 200px;
+    font-family: Georgia, "Times New Roman", KaiTi, STKaiti, serif;
+}
+
+div.container {
+    /* float: left; */
+    width: 500px;
+}
+div.word {
+    /* width: 300px; */
+    padding: 0px;
+}
+
+div.control button {
+    display: inline-block; /* width: 800px; */
+}
+
+div.toolset {
+    padding-left: 3px;
+}
+div.word-box {
+    clear: left;
+    margin: 15px 5px 15px 2px;
+    padding: 5px 0px;
+}
+
+pre.word-cell {
+    padding: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 200px;
+    font-family: KaiTi;
+    line-height: 220px;
+    white-space: nowrap;
+}
+
+pre.word-cell.wrong {
+    color: red;
+}
+
+pre.word-cell.pass {
+     color: blue;
+}
+
+div.control button {
+    margin: 5px 5px 0px 5px;
+    /* width: 80px; */
+}
+
+.label-purple {
+    background-color: #800080;
+}
+
+span.label.label-points {
+    margin: 5px 10px 0px 10px;
+}
+
+#thumbs-up { margin: 0px 5px; }
+#thumbs-down { margin: 0px 5px; }
