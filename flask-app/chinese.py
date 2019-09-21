@@ -3,7 +3,7 @@
 
 from flask import Flask, current_app
 from flask import render_template
-from flask import Response, request, jsonify, g
+from flask import Response, abort, request, jsonify, g
 
 import codecs
 import random
@@ -34,7 +34,7 @@ def close_connection(exception):
 
 
 @app.route('/')
-def hello_world():
+def hanzi_index():
     T = datetime.now() - timedelta(days=4)
     conn = get_db()
     cur = conn.cursor()
@@ -78,7 +78,7 @@ def getWords():
             allBooks.setdefault(book, 0)
             ++allBooks[book]
     ret = {'words': sorted([wd[k] for k in kn], key = lambda x: (x['points'], x['dateStudy'])),
-           'cut': ncut, 'totalWords': len(wd), 'daily': {}, 'bookList': list(allBooks.keys())}
+           'cut': ncut, 'totalWords': len(wd), 'daily': {}, 'bookList': sorted(list(allBooks.keys()))}
     
     ret['today'] = int(datetime.now().strftime("%Y%m%d"))
     cur.execute('select date,pass,fail,points from daily order by date')
@@ -127,7 +127,60 @@ def saveWords():
     print(saved)
     return jsonify(saved)
 
+def updateBook(cur, book):
+    """insert the book if not exist. return the bookId"""
+    bookId = -1;
+    for x in cur.execute('select bookId from books where bookName=? limit 1', (book,)):
+        bookId = x[0]
+    if bookId > 0: return bookId
+    cur.execute('insert into books(bookName) values(?)', (book,))
+    return cur.lastrowid
+    
+@app.route('/add', methods=['POST'])
+def addWords():
+    print("request data:", request.get_data())
+    conn = get_db() # sqlite3.connect("chinese.sqlite3")
+    cur = conn.cursor()
+    cur.execute("select word,wordId from pool")
+    all_words = cur.fetchall()
+    if len(all_words) > 100000: # Chinese is limited
+        abort(400, "The database is full")
+    print("we have ", len(all_words), " words")
+    data = request.get_json()
+    print(data)
+    words = dict([(w, -1) for w in data['words']])
+    if len(words) > 5000:
+        abort(400, "Too many words") 
+    # return Response("{}".format(words), mimetype="text/text")
+    
+    bookName = data['book']
+    chapterName = data.get('chapter', '')
+    bookId = updateBook(cur, bookName)
 
+    for r in all_words:
+        if r[0] not in words: continue
+        words[r[0]] = r[1]
+
+    saved = []
+    for w, wid in words.items():
+        w_pool_new, w_in_more_book = 0, 0 
+        if wid < 0: # new word
+            cur.execute('insert into pool(word,points) values(?,0)', (w,))
+            w_pool_new = 1
+            wid = cur.lastrowid
+        # check if book
+        cur.execute('select chapterId,bookName from wordbook where wordId=? and bookName=?',
+                    (wid,bookName))
+        data = cur.fetchone()
+        if data is None:
+            cur.execute('insert into wordbook(wordId,chapterId,bookName,chapterName) values(?,-1,?,?)',
+                        (wid, bookName,chapterName))
+            w_in_more_book = 1
+        # response 
+        saved.append((w, wid, w_pool_new, w_in_more_book))
+    conn.commit()
+    return jsonify(saved)
+    
 def utc_to_local(utcs, dt):
     t0 = datetime.strptime(utcs, "%Y-%m-%dT%H:%M:%S.%fZ")
     return (t0-dt).strftime("%Y-%m-%d %H:%M:%S")
@@ -161,7 +214,6 @@ def review_words(deadline):
     
     count['points'] = cur.fetchone()[-1] if cur.rowcount > 0 else 0
     return render_template("chinese_review.html", words=words, count=count, revDate=deadline[0:8])
-
 
 
 
