@@ -30,7 +30,8 @@
       <option disabled value="">Select a book</option>
       <option v-for="book in bookList" v-bind:value="book">{{book}}</option>
     </select>
-    <span>use book: {{ bookSelected }}</span>
+    <label for="skipNewWords"><input class="" name="skipNewWords" type="checkbox" v-model="skipNewWords">Skip New Words</label>
+    <!-- span>use book: {{ bookSelected }}</span -->
   </div>
   <h3>Earned POINTS: <span :class="['label', 'label-points', points > 0 ? 'label-purple' : 'label-danger']"><span class="glyphicon glyphicon-star"></span>{{ points }}</span><button id="thumbs-up" type="button" class="btn btn-lg btn-secondary" v-on:click="points += 3"><span class="glyphicon glyphicon-thumbs-up"></span></button><button id="thumbs-down" type="button" class="btn btn-lg btn-secondary" v-on:click="points -= 3"><span class="glyphicon glyphicon-thumbs-down"></span></button>
   </h3>
@@ -49,9 +50,9 @@
     </div>
   </div>
 
-  <div class="form-group checkbox">
+  <!-- div class="form-group checkbox">
     <label for="skipNewWords"><input class="" name="skipNewWords" type="checkbox" v-model="skipNewWords">Skip New Words</label>
-  </div>
+  </div -->
 <div class="" v-for="(word,iw) in wordList">
   <div class="word-box" v-if="show(word)">
     <!-- span>{{ word.wordId }}</span -->

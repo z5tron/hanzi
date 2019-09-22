@@ -5,6 +5,7 @@ from flask import Flask, current_app
 from flask import render_template
 from flask import Response, abort, request, jsonify, g
 
+import sys
 import codecs
 import random
 import sqlite3
@@ -16,7 +17,9 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
 # DBFNAME = path.join(app.root_path, "chinese.sqlite3")
-DBFNAME = "/tmp/db.sqlite3"
+DBFNAME = "/var/tmp/db.sqlite3"
+PORT=5000
+DEBUG=False
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -114,17 +117,18 @@ def saveWords():
                     (word['score'], word['wordId']))
         cur.execute('insert into progress(wordId, points, dateStudy) values(?,?,?)',
                     (word['wordId'], word['score'], word['dateStudy']))
-        saved.append(word)
+        saved.append([(k, word[k]) for k in ('wordId', 'score', 'dateStudy')])
         if word['score'] > 0: passed += 1
         elif word['score'] < 0: failed += 1
+    print(saved)
     if saved:
         d = datetime.now().strftime("%Y%m%d")
         cur.execute('insert into daily(date) values(?)', (int(d),))
         cur.execute('update daily set pass=pass+?,fail=fail+?,points=? where date=?',
                     (passed, failed, data['points'], d))
-        conn.commit()
+    conn.commit()
     #return Response("{}\n{}".format(words, saved), mimetype="text/text")
-    print(saved)
+    print(jsonify(saved))
     return jsonify(saved)
 
 def updateBook(cur, book):
@@ -218,4 +222,9 @@ def review_words(deadline):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    for i in [1,3]:
+        if i >= len(sys.argv): break
+        if sys.argv[i] == '--db': DBFNAME = sys.argv[i+1]
+        elif sys.argv[i] == '--port': PORT = int(sys.argv[i+1])
+        
+    app.run(host="0.0.0.0", port=PORT, debug=True)
