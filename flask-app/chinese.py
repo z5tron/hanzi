@@ -55,9 +55,12 @@ def getWords():
     ncut = 50
     tcut = (datetime.now() - timedelta(days=100)).strftime("%Y-%m-%d")
     cur.execute('select wordId,max(dateStudy),sum(points) from progress group by wordId')
+    prevStudy = {} # 
     for wordId,dateStudy,points in cur.fetchall():
         if wordId not in wd:
-            continue # studied not in pool ? 
+            continue # studied not in pool ?
+        prevStudy.setdefault(dateStudy[:10], 0)
+        prevStudy[dateStudy[:10]] += 1
         # studied today, skip
         if dateStudy[:10] >= dt2 or points > 100000 or (points >= ncut and dateStudy[:10] > tcut):
             wd.pop(wordId)
@@ -96,10 +99,13 @@ def getWords():
                                if d < ret['today']])
     ret['totalDays'] = (datetime.now() - datetime.strptime(str(ret['firstDay']), "%Y%m%d")).days
     
-    dt, ret['reviewDays'] = datetime.now(), []
-    for i in range(5):
-        ret['reviewDays'].append((dt-timedelta(days=i)).strftime("%Y-%m-%d"))
-    ret['reviewDays'].append((dt-timedelta(days=14)).strftime("%Y-%m-%d"))
+    # dt, ret['reviewDays'] = datetime.now(), []
+    # for i in range(5):
+    #     ret['reviewDays'].append((dt-timedelta(days=i)).strftime("%Y-%m-%d"))
+    ret['reviewDays'] = []
+    for k in sorted(prevStudy.keys(), reverse=True):
+        if len(ret['reviewDays']) > 4: break
+        ret['reviewDays'].append(k)
     return jsonify(ret)
 
 
