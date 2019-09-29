@@ -9,9 +9,9 @@ import sys
 import codecs
 import random
 import sqlite3
-from os import path
+from os import path, getcwd, chdir
 from datetime import datetime, timedelta
-
+import subprocess
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -226,6 +226,17 @@ def review_words(deadline):
     return render_template("chinese_review.html", words=words, count=count, revDate=deadline[0:8])
 
 
+@app.route('/print', methods=['GET', 'POST'])
+def printWords():
+    print("request data:", request.get_data())
+    words='食 无 名 加 共 事 帮 饿 肚 狮 觉 毛 求 等 香 肉 听 水'
+    with open('/tmp/junk.print.tex', 'w') as f:
+        f.write(render_template("print_words.tex", title='中文', date='2019-09-29', words=words.split()))
+    cwd = getcwd()
+    chdir("/tmp")
+    subprocess.run(["xelatex", "/tmp/junk.print.tex"])
+    chdir(cwd)
+    return ""
 
 if __name__ == "__main__":
     for i in [1,3]:
