@@ -1,0 +1,18 @@
+# FILE: /etc/systemd/system/hanzi-server
+# sudo systemctl status hanzi-server
+# sudo systemctl start/stop hanzi-server
+#
+[Unit]
+Description=Hanzi Server
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStartPre=-/usr/bin/docker stop hanzi
+ExecStartPre=-/usr/bin/docker rm hanzi
+ExecStartPre=/usr/bin/docker pull z5tron/hanzi
+ExecStart=/usr/bin/docker run --rm -p 80:5000 --name hanzi -v /home/lyyang/code/hanzi/data/db.sqlite3:/var/tmp/db.sqlite3 z5tron/hanzi
+
+[Install]
+WantedBy=default.target
+
