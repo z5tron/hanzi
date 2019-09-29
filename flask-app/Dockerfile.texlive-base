@@ -1,0 +1,24 @@
+# Instructions copied from - https://hub.docker.com/_/python/
+# FROM python:3-onbuild
+FROM ubuntu:bionic
+RUN ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime \
+    && echo "Etc/UTC" > /etc/timezone
+RUN apt-get update
+RUN apt-get upgrade -y
+
+ADD https://raw.githubusercontent.com/dolbydu/font/master/unicode/Adobe%20Fangsong%20Std.otf /usr/share/fonts/opentype/AdobeFangSong-Std.otf
+ADD https://raw.githubusercontent.com/dolbydu/font/master/unicode/Adobe%20Heiti%20Std.otf /usr/share/fonts/opentype/AdobeHeiti-Std.otf
+ADD https://raw.githubusercontent.com/dolbydu/font/master/unicode/Adobe%20Kaiti%20Std.otf /usr/share/fonts/opentype/AdobeKaiti-Std.otf
+ADD https://raw.githubusercontent.com/dolbydu/font/master/unicode/Adobe%20Song%20Std.otf /usr/share/fonts/opentype/AdobeSong-Std.otf
+
+RUN apt-get install texlive-latex-base texlive-latex-recommended -y
+RUN apt-get install texlive-xetex texlive-lang-chinese texlive-lang-cjk -y
+RUN apt-get install python3 -y
+
+# tell the port number the container should expose
+# EXPOSE 5000
+
+RUN mktexlsr
+
+# run the command
+# CMD ["python", "./chinese.py"]
