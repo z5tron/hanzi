@@ -2,8 +2,8 @@
 # Python 2.7
 
 from flask import Flask, current_app
-from flask import render_template
-from flask import Response, abort, request, jsonify, g
+from flask import render_template, send_file
+from flask import Response, abort, request, jsonify, g, send_from_directory
 
 import sys
 import codecs
@@ -12,6 +12,8 @@ import sqlite3
 from os import path, getcwd, chdir
 from datetime import datetime, timedelta
 import subprocess
+import argparse
+import uuid
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -20,6 +22,7 @@ app.config['JSON_AS_ASCII'] = False
 DBFNAME = "/var/tmp/db.sqlite3"
 PORT=5000
 DEBUG=False
+OUTPUT="/tmp"
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -148,16 +151,16 @@ def updateBook(cur, book):
     
 @app.route('/add', methods=['POST'])
 def addWords():
-    print("request data:", request.get_data())
+    # print("request data:", request.get_data())
     conn = get_db() # sqlite3.connect("chinese.sqlite3")
     cur = conn.cursor()
     cur.execute("select word,wordId from pool")
     all_words = cur.fetchall()
     if len(all_words) > 100000: # Chinese is limited
         abort(400, "The database is full")
-    print("we have ", len(all_words), " words")
+    # print("we have ", len(all_words), " words")
     data = request.get_json()
-    print(data)
+    # print(data)
     words = dict([(w, -1) for w in data['words']])
     if len(words) > 5000:
         abort(400, "Too many words") 
@@ -226,22 +229,46 @@ def review_words(deadline):
     return render_template("chinese_review.html", words=words, count=count, revDate=deadline[0:8])
 
 
-@app.route('/print', methods=['GET', 'POST'])
+@app.route('/print', methods=['GET'])
+def printWordsMain():
+    return current_app.send_static_file("print.html")
+
+@app.route('/print', methods=['POST'])
 def printWords():
     print("request data:", request.get_data())
-    words='食 无 名 加 共 事 帮 饿 肚 狮 觉 毛 求 等 香 肉 听 水'
-    with open('/tmp/junk.print.tex', 'w') as f:
-        f.write(render_template("print_words.tex", title='中文', date='2019-09-29', words=words.split()))
+    title=request.form.get("title", "中文")
+    words=request.form.get("wordText", "").split()
+    print(words)
     cwd = getcwd()
-    chdir("/tmp")
-    subprocess.run(["xelatex", "/tmp/junk.print.tex"])
+    chdir(OUTPUT)
+    ts = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    ftex = "{}-{}".format(ts, uuid.uuid4())
+    with open("{}.tex".format(ftex), 'w') as f:
+        f.write(render_template("print_words.tex", title=title,
+                                date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                words=words))
+    subprocess.run(["xelatex", path.join(OUTPUT, "{}.tex".format(ftex))])
+    # bin_pdf = ''
+    # with open(path.join(OUTPUT, "{}.pdf".format(ftex)), 'rb') as f:
+    #     bin_pdf = f.read()
+    #     response = make_response(bin_pdf)
+    #     response.headers['Content-Type'] = 'application/pdf'
+    #     response.headers['Content-Disposition'] = 'inline; filename={}.pdf'.format(ftex)
+    #     return response
     chdir(cwd)
-    return ""
+    fpdf = path.join(OUTPUT, '{}.pdf'.format(ftex))
+    print("output file: ", fpdf)
+    return send_file(fpdf, as_attachment=True)
+    return ftex
 
 if __name__ == "__main__":
-    for i in [1,3]:
-        if i >= len(sys.argv): break
-        if sys.argv[i] == '--db': DBFNAME = sys.argv[i+1]
-        elif sys.argv[i] == '--port': PORT = int(sys.argv[i+1])
-        
+    parser = argparse.ArgumentParser(description="Chinese")
+    parser.add_argument('--db', default='/var/tmp/db.sqlite3', help="SQLite3 db")
+    parser.add_argument('--port', type=int, default=5000, help="port")
+    parser.add_argument('--output', default='/var/www/output', help="Output dir")
+    
+    args = parser.parse_args()
+    PORT = args.port
+    DBFNAME = args.db
+    OUTPUT=args.output
     app.run(host="0.0.0.0", port=PORT, debug=True)

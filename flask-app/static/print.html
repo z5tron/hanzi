@@ -1,0 +1,33 @@
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+<!-- Optional theme -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+<!-- Latest compiled and minified JavaScript -->
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/vue@2.4.4/dist/vue.js"></script>
+<link rel="stylesheet" href="/static/chinese.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.">
+<!-- link rel="stylesheet" href="{{ url_for('static', filename='chinese.css') }}" -->
+</head>
+<body>
+<div id="wordprint">
+
+  <h1><a href="http://zetta.mooo.com/">Print Chinese</a></h1>
+  <form method="POST">
+    <input type="text" name="title" />
+  <div>
+    <textarea type="text" name="wordText" v-model="wordText" class="form-control" aria-label="With textarea"></textarea>
+  </div>
+  <div></div>
+  <div><button type="submit" class="btn btn-primary btn-lg btn-block">Primary</button></div>
+  </form>
+</div>
+
+<script src="/static/print.js"></script>
+
+</body>
+</html>
