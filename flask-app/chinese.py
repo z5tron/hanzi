@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Python 2.7
 
 from flask import Flask, current_app
 from flask import render_template, send_file
