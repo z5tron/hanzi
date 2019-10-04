@@ -33,6 +33,7 @@ pre.word-cell {
     font-family: KaiTi;
     line-height: 220px;
     white-space: nowrap;
+    font-family: Adobe Kaiti Std,STKaiti,KaiTi,BiauKai,"Microsoft YaHei",微软雅黑,"MicrosoftJhengHei",华文细黑,STHeiti,MingLiu;
 }
 
 pre.word-cell.wrong {
