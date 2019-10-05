@@ -236,14 +236,19 @@ def printWordsMain():
 def printWords():
     print("request data:", request.get_data())
     title=request.form.get("title", "中文")
-    words=request.form.get("wordText", "").split()
-    print(words)
+    #words=request.form.get("wordText", "").split()
+    # fill the words into whole page, 36characters, 3columns*12
+    words = request.form.get("wordText", "").replace(" ", "")
+    while len(words) % 36 != 0:
+        words = words + " "
+
+    print(len(words), "'{}'".format(words))
     cwd = getcwd()
     chdir(OUTPUT)
     ts = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     ftex = "{}-{}".format(ts, uuid.uuid4())
     with open("{}.tex".format(ftex), 'w') as f:
-        f.write(render_template("print_words.tex", title=title,
+        f.write(render_template("print_words_3col.tex", title=title,
                                 date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                 words=words))
     subprocess.run(["xelatex", path.join(OUTPUT, "{}.tex".format(ftex))])
