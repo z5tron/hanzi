@@ -238,9 +238,20 @@ def printWords():
     title=request.form.get("title", "汉字练习")
     #words=request.form.get("wordText", "").split()
     # fill the words into whole page, 36characters, 3columns*12
-    words = request.form.get("wordText", "").replace(" ", "")
+    rawWordText = request.form.get("wordText", "").replace(" ", "")
     # skip the ASCII
+    words = rawWordText #
+    print(request.form.get("dedupe"))
+    if request.form.get("dedupe", "off") == "on":
+        print("dedupe is turned on for rawWordText:", len(rawWordText))
+        wdict = {}
+        for i,w in enumerate(rawWordText):
+            wdict.setdefault(w, i)
+        wlist = sorted([(v,k) for k,v in wdict.items()])
+        words = "".join([x[1] for x in wlist])
+        print("new length: ", len(words))
     words = "".join([' ' if ord(x)<128 else x for x in words[:360]])
+    words = words.strip()
     # patch to whole page, 12 per column, 3 columns per page
     while len(words) % 36 != 0:
         words = words + " "

@@ -5,6 +5,7 @@ var app = new Vue({
   data: {
     wordText: "今天不努力工作，明天努力找工作。",
     title: "汉字练习",
+    dedupe: true,
   },
   computed: {
   },
