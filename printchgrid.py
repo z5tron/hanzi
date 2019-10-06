@@ -227,8 +227,9 @@ TEMPLATE=r"""
 from jinja2 import Template
 
 template = Template(TEMPLATE)
-words='食 无 名 加 共 事 帮 饿 肚 狮 觉 毛 求 等 香 肉 听 水'
+words='食 无 名 加 共,，'
 words = words.replace(' ', '') + "    "
+words = "".join([' ' if ord(x)<128 else x for x in words])
 while len(words) % 36 != 0:
     words = words + " "
 print(template.render(title='中文', date='2019-09-29', words=words))

@@ -235,10 +235,13 @@ def printWordsMain():
 @app.route('/print', methods=['POST'])
 def printWords():
     print("request data:", request.get_data())
-    title=request.form.get("title", "中文")
+    title=request.form.get("title", "汉字练习")
     #words=request.form.get("wordText", "").split()
     # fill the words into whole page, 36characters, 3columns*12
     words = request.form.get("wordText", "").replace(" ", "")
+    # skip the ASCII
+    words = "".join([' ' if ord(x)<128 else x for x in words[:360]])
+    # patch to whole page, 12 per column, 3 columns per page
     while len(words) % 36 != 0:
         words = words + " "
 
@@ -252,13 +255,6 @@ def printWords():
                                 date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                 words=words))
     subprocess.run(["xelatex", path.join(OUTPUT, "{}.tex".format(ftex))])
-    # bin_pdf = ''
-    # with open(path.join(OUTPUT, "{}.pdf".format(ftex)), 'rb') as f:
-    #     bin_pdf = f.read()
-    #     response = make_response(bin_pdf)
-    #     response.headers['Content-Type'] = 'application/pdf'
-    #     response.headers['Content-Disposition'] = 'inline; filename={}.pdf'.format(ftex)
-    #     return response
     chdir(cwd)
     fpdf = path.join(OUTPUT, '{}.pdf'.format(ftex))
     print("output file: ", fpdf)

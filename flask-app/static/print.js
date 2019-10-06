@@ -3,8 +3,8 @@
 var app = new Vue({
   el: '#wordprint',
   data: {
-    wordText: "食 无 名 加 共 事 帮 饿 肚 狮 觉 毛 求 等 香 肉 听 水",
-    title: "Chinese",
+    wordText: "今天不努力工作，明天努力找工作。",
+    title: "汉字练习",
   },
   computed: {
   },
