@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from flask import Flask, current_app
-from flask import render_template, send_file
-from flask import Response, abort, request, jsonify, g, send_from_directory
-
 import sys
 import codecs
 import random
@@ -14,218 +10,59 @@ import subprocess
 import argparse
 import uuid
 
+from flask import Flask, current_app
+from flask import render_template, send_file
+from flask import Response, abort, request, jsonify, g, send_from_directory
+
+from flask_sqlalchemy import SQLAlchemy
+from flask_bootstrap import Bootstrap
+
 app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = \
+    "postgresql://alex:abc123@localhost/hanzi"
+    # "mysql+pymysql://alex:abc123@localhost/hanzi?charset=utf8"
 
-# DBFNAME = path.join(app.root_path, "chinese.sqlite3")
-DBFNAME = "/var/tmp/db.sqlite3"
-PORT=5000
-DEBUG=False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+bootstrap = Bootstrap(app)
+
+class User(db.Model):
+    __tablename__ = "user"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Unicode(64), nullable=False)
+    points = db.Column(db.Integer, default=0)
+    first_study = db.Column(db.DateTime, default=datetime.utcnow)
+    last_study = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class Word(db.Model):
+    __tablename__ = "word"
+    __table_args__ = (
+        db.UniqueConstraint('word', 'book', name="unique_word_book"),
+    )
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
+    word = db.Column(db.Unicode(16), nullable=False)
+    book = db.Column(db.Unicode(64), nullable=False)
+    chapter = db.Column(db.Unicode(16), default="")
+    created_date = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class Progress(db.Model):
+    __tablename__ = "progress"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    word_id = db.Column(db.Integer, db.ForeignKey("word.id"))
+    word = db.Column(db.Unicode(16), nullable=False)
+    study_date = db.Column(db.DateTime, nullable=False)
+    trial = db.Column(db.Integer, default = 0)
+    points = db.Column(db.Integer, default = 0)
+    total_points = db.Column(db.Integer, default=0)
+    
 OUTPUT="/tmp"
-
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(DBFNAME)
-    return db
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
-
 
 
 @app.route('/')
-def hanzi_index():
-    T = datetime.now() - timedelta(days=4)
-    conn = get_db()
-    cur = conn.cursor()
-    return current_app.send_static_file("chinese.html")
-
-@app.route('/words')
-def getWords():
-    conn = get_db() # sqlite3.connect("chinese.sqlite3")
-    cur = conn.cursor()
-    dt = datetime.now().strftime("%Y-%m-%d")
-    dt2 = (datetime.now() - timedelta(days=3)).strftime("%Y-%m-%d")
-    cur.execute('select wordId,word,points,ifreq from pool')
-    wd = dict([(r[0], {'wordId': r[0], 'word': r[1], 'points': r[2], 'ifreq': r[3], 'dateStudy': ''}) for r in cur.fetchall()])
-
-    ncut = 50
-    tcut = (datetime.now() - timedelta(days=100)).strftime("%Y-%m-%d")
-    cur.execute('select wordId,max(dateStudy),sum(points) from progress group by wordId')
-    prevStudy = {} # 
-    for wordId,dateStudy,points in cur.fetchall():
-        if wordId not in wd:
-            continue # studied not in pool ?
-        prevStudy.setdefault(dateStudy[:10], 0)
-        prevStudy[dateStudy[:10]] += 1
-        # studied today, skip
-        if dateStudy[:10] >= dt2 or points > 100000 or (points >= ncut and dateStudy[:10] > tcut):
-            wd.pop(wordId)
-            continue
-        
-        # upate pool
-        wd[wordId]['dateStudy'] = dateStudy
-    newWd = [ w for w,v in wd.items() if v['dateStudy'] == '' ]
-    #kn = random.sample(newWd, min(20, len(newWd)))
-    print("found words:", len(wd))
-    kn = random.sample(list(wd.keys()), len(wd)) # wd; #random.sample(wd, min(20, len(wd)))
-    #while len(kn) < 20:
-    #    kn += random.sample(wd.keys(), 1)
-    allBooks = {}
-    for k in kn:
-        cur.execute('select wordId,chapterId,bookName,chapterName from wordbook where wordId=?',
-                    (wd[k]['wordId'],))
-        wd[k]['bookList'] = [ (c[2].strip(), c[3].strip()) for c in cur.fetchall()]
-        wd[k]['books'] =', '.join([':'.join(c) for c in wd[k]['bookList']])
-        for book,chap in wd[k]['bookList']:
-            allBooks.setdefault(book, 0)
-            ++allBooks[book]
-    ret = {'words': sorted([wd[k] for k in kn], key = lambda x: (x['points'], x['dateStudy'])),
-           'cut': ncut, 'totalWords': len(wd), 'daily': {}, 'bookList': sorted(list(allBooks.keys()))}
-    
-    ret['today'] = int(datetime.now().strftime("%Y%m%d"))
-    cur.execute('select date,pass,fail,points from daily order by date')
-    totPoints = 0;
-    for date,passed,failed,points in cur.fetchall():
-        ret['daily'][date] = [passed, failed, points]
-        if date < ret['today']:
-            totPoints += points
-    ret['firstDay'] = min(ret['daily'].keys())
-    ret['totalStudyDays'] = len(ret['daily'])
-    ret['totalPoints'] = sum([ points for d,(p,f,points) in ret['daily'].items()
-                               if d < ret['today']])
-    ret['totalDays'] = (datetime.now() - datetime.strptime(str(ret['firstDay']), "%Y%m%d")).days
-    
-    # dt, ret['reviewDays'] = datetime.now(), []
-    # for i in range(5):
-    #     ret['reviewDays'].append((dt-timedelta(days=i)).strftime("%Y-%m-%d"))
-    ret['reviewDays'] = []
-    for k in sorted(prevStudy.keys(), reverse=True):
-        if len(ret['reviewDays']) > 4: break
-        ret['reviewDays'].append(k)
-    return jsonify(ret)
-
-
-@app.route('/save', methods=['POST'])
-def saveWords():
-    data = request.get_json()
-    words = data['words']
-    # return Response("{}".format(words), mimetype="text/text")
-    conn = get_db() # sqlite3.connect("chinese.sqlite3")
-    cur = conn.cursor()
-    saved, passed, failed = [], 0, 0
-    for word in words:
-        if word.get('skip', 0): continue
-        cur.execute('update pool set points=points + ? where wordId=?',
-                    (word['score'], word['wordId']))
-        cur.execute('insert into progress(wordId, points, dateStudy) values(?,?,?)',
-                    (word['wordId'], word['score'], word['dateStudy']))
-        saved.append([(k, word[k]) for k in ('wordId', 'score', 'dateStudy')])
-        if word['score'] > 0: passed += 1
-        elif word['score'] < 0: failed += 1
-    print(saved)
-    if saved:
-        d = datetime.now().strftime("%Y%m%d")
-        cur.execute('insert into daily(date) values(?)', (int(d),))
-        cur.execute('update daily set pass=pass+?,fail=fail+?,points=? where date=?',
-                    (passed, failed, data['points'], d))
-    conn.commit()
-    #return Response("{}\n{}".format(words, saved), mimetype="text/text")
-    print(jsonify(saved))
-    return jsonify(saved)
-
-def updateBook(cur, book):
-    """insert the book if not exist. return the bookId"""
-    bookId = -1;
-    for x in cur.execute('select bookId from books where bookName=? limit 1', (book,)):
-        bookId = x[0]
-    if bookId > 0: return bookId
-    cur.execute('insert into books(bookName) values(?)', (book,))
-    return cur.lastrowid
-    
-@app.route('/add', methods=['POST'])
-def addWords():
-    # print("request data:", request.get_data())
-    conn = get_db() # sqlite3.connect("chinese.sqlite3")
-    cur = conn.cursor()
-    cur.execute("select word,wordId from pool")
-    all_words = cur.fetchall()
-    if len(all_words) > 100000: # Chinese is limited
-        abort(400, "The database is full")
-    # print("we have ", len(all_words), " words")
-    data = request.get_json()
-    # print(data)
-    words = dict([(w, -1) for w in data['words']])
-    if len(words) > 5000:
-        abort(400, "Too many words") 
-    # return Response("{}".format(words), mimetype="text/text")
-    
-    bookName = data['book']
-    chapterName = data.get('chapter', '')
-    bookId = updateBook(cur, bookName)
-
-    for r in all_words:
-        if r[0] not in words: continue
-        words[r[0]] = r[1]
-
-    saved = []
-    for w, wid in words.items():
-        w_pool_new, w_in_more_book = 0, 0 
-        if wid < 0: # new word
-            cur.execute('insert into pool(word,points) values(?,0)', (w,))
-            w_pool_new = 1
-            wid = cur.lastrowid
-        # check if book
-        cur.execute('select chapterId,bookName from wordbook where wordId=? and bookName=?',
-                    (wid,bookName))
-        data = cur.fetchone()
-        if data is None:
-            cur.execute('insert into wordbook(wordId,chapterId,bookName,chapterName) values(?,-1,?,?)',
-                        (wid, bookName,chapterName))
-            w_in_more_book = 1
-        # response 
-        saved.append((w, wid, w_pool_new, w_in_more_book))
-    conn.commit()
-    return jsonify(saved)
-    
-def utc_to_local(utcs, dt):
-    t0 = datetime.strptime(utcs, "%Y-%m-%dT%H:%M:%S.%fZ")
-    return (t0-dt).strftime("%Y-%m-%d %H:%M:%S")
-
-@app.route('/review/<deadline>')
-def review_words(deadline):
-    deadline = ''.join(x for x in deadline if x.isdigit())
-    T = datetime.now()
-    dt1 = datetime(int(deadline[:4]), int(deadline[4:6]), int(deadline[6:8])) #T.strftime("%Y-%m-%d")
-    dt2 = T
-    if len(deadline) >= 16:
-        dt2 = datetime(int(deadline[8:12]), int(deadline[12:14]), int(deadline[14:16]))
-    # convert to utc
-    dt = datetime.utcnow() - datetime.now()
-    ts = [(ti+dt).strftime("%Y-%m-%dT%H:%M:%S") for ti in (dt1, dt2)]
-
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute('select prog.wordId,pool.word,prog.dateStudy,pool.points from (select * from progress where points < 0) as prog left join pool on prog.wordId=pool.wordId where prog.dateStudy > ? and prog.dateStudy < ? and pool.points < 50 ORDER by prog.dateStudy ASC', (ts[0], ts[1],))
-    words = [{'wordId': r[0], 'word': r[1], 'dateStudy': utc_to_local(r[2], dt), 'points': r[3]} for r in cur.fetchall()]
-
-    count = {}
-    cur.execute('select distinct wordId from progress where points > 0')
-    count['once'] = len(cur.fetchall())
-    cur.execute('select wordId from pool where points >= 50')
-    count['done'] = len(cur.fetchall())
-    cur.execute('select wordId from pool')
-    count['size'] = len(cur.fetchall())
-    cur.execute('select pass,fail,points from daily where date=?', (deadline[0:8],))
-    
-    count['points'] = cur.fetchone()[-1] if cur.rowcount > 0 else 0
-    return render_template("chinese_review.html", words=words, count=count, revDate=deadline[0:8])
+def index():
+    return render_template("words.html")
 
 
 @app.route('/print', methods=['GET'])

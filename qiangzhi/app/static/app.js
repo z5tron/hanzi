@@ -2,6 +2,7 @@
 
 var app = new Vue({
   el: '#wordapp',
+  delimiters: ['[[', ']]'],
   data: {
     words: [],
     iword: 0,
@@ -120,49 +121,15 @@ var app = new Vue({
 	success: function(data) {
 	    console.log("saved!", data);
 	},
-	  error: function(data) { alert("ERROR", data); },
+	error: function(data) { console.log("ERROR", data); },
       });
     }
   },
   mounted: function() {
     var self = this;
-    $.ajax({
-      type: 'GET',
-      url: "words",
-      dataType: 'json',
-      success: function(data) {
-	console.log(data);
-	self.words.splice(0);
-	self.totalWords = data.totalWords;
-	for (var i = 0; i < data.words.length; ++i) {
-	  data.words[i].score = 0;
-	  data.words[i].skip = false;
-	  // data.words[i].dateStudy = '';
-	  self.words.push(data.words[i]);
-	  if(self.activeWords.length < self.nmax) self.activeWords.push(self.words[i]);
-	}
-	self.today = data.today;
-	console.log("today: ", data.today);
-	console.log("daily: ", data.daily);
-	if (data.daily[data.today]) {
-	  self.passed = data.daily[data.today][0];
-	  self.failed = data.daily[data.today][1];
-	  self.points = data.daily[data.today][2];
-	}
-	self.totalPoints = data.totalPoints;
-	self.totalDays = data.totalDays;
-	self.totalStudyDays = data.totalStudyDays;
-	self.firstDay = data.firstDay;
-        self.reviewDays.splice(0);
-        self.reviewDays.push(...data.reviewDays);
-	self.bookList.splice(0);
-	console.log(data.bookList);
-	for(var i = 0; i < data.bookList.length; ++i) {
-	  self.bookList.splice(i, 1, data.bookList[i]);
-	}
-	console.log(self.bookList);
-      }
-    });
+    for (i = 0; i < ALL_WORDS.length; ++i) {
+      self.words.push(ALL_WORDS[i]);
+    }
     console.log("passed ?");
   },
 })

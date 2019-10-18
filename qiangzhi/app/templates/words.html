@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block meta %}
+{{ super() }}
+<meta name="viewport" content="width=device-width, initial-scale=1.">
+{% endblock %}
+
+{% block title %}Hanzi - {{ book }}{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='chinese.css') }}">
+{% endblock %}
+
+
+{% block page_content %}
+<h1>{{ book }}</h1>
+<div id="wordapp">
+<h3>Earned POINTS: <span :class="['label', 'label-points', points > 0 ? 'label-purple' : 'label-danger']"><span class="glyphicon glyphicon-star"></span>{{ 'points' }}</span><button id="thumbs-up" type="button" class="btn btn-lg btn-secondary" v-on:click="points += 3"><span class="glyphicon glyphicon-thumbs-up"></span></button><button id="thumbs-down" type="button" class="btn btn-lg btn-secondary" v-on:click="points -= 3"><span class="glyphicon glyphicon-thumbs-down"></span></button>
+</h3>
+passed: {{ 'passed' }}, failed: {{ 'failed' }}. <span id="wordId">Displayed {{ 'iword' }} out of {{ 'filterWords.length' }}</span>
+
+<div class="row">
+  <div class="col-xs-12">
+    <ul class="pager">
+      <li v-on:click="iword=Math.max(0, iword-wordsPerPage)"><a href="#">Prev</a></li>
+      <li v-on:click="iword=0"><a href="#">First</a></li>
+      <li v-on:click="iword=iwordLast"><a href="#">Last</a></li>
+      <li v-on:click="iword=Math.min(words.length-1, iword+wordsPerPage)"><a href="#">Next</a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="" v-for="(word,iw) in wordList">
+  <div class="word-box" v-if="show(word)">
+    <form method="post" action="http://www.chinese-dictionary.org" class="inline">
+      <div class="toolset col-xs-2">
+	<div class="control raw">
+	  <button id="btn-pass" type="button" name="stat-pass" class="btn btn-success btn-block" v-on:click="markPoints(word, 10)" :disabled="word.score > 0">Pass</button>
+	  <button id="btn-pass" type="button" name="stat-pass" class="btn btn-success btn-block" v-on:click="markPoints(word, 2)" :disabled="word.score > 0">Guessed(+2)</button>
+          <input type="hidden" name="dico" :value="word.word"></input>
+          <input type="hidden" name="dl" value="en"></input>
+	  <button type="submit" class="btn btn-default btn-block" name="search-word" value="submit_value">Search</button>
+	  <button id="btn-fail" type="button" name="stat-fail" class="btn btn-danger btn-block" v-on:click="markPoints(word, -10)" :disabled="word.score < 0">Fail</button>
+	  <button id="btn-skip" type="button" name="stat-skip" class="btn btn-default btn-block" v-on:click="skipWord(word)">Skip</button>
+	  <button id="btn-skip" type="button" name="stat-fail" class="btn btn-default btn-block" v-on:click="markPoints(word, 1000000)" :disabled="word.score < 0">IgnoreForEver</button>
+        </div>
+      </div>
+      <div class="word col-xs-10"><pre id="word" v-bind:class="['word-cell', status(word)]">[[ word.word ]]</pre>
+	<p id="wordStat"> score=[[ word.score ]], freq={{ 'word.ifreq' }}, points=<span :class='{label: true, "label-danger": word.total_points < 0, "label-default": word.total_points >= 0}'>[[ word.total_points ]]</span>, [[ dateFormat(word.study_date) ]]</p>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xs-12">
+    <!-- button type="button" class="btn btn-lg btn-primary" --
+      -- v-on:click="showNextList()">Next</button -->
+    <ul class="pager">
+      <li v-on:click="iword=Math.max(0, iword-wordsPerPage)"><a href="#">Prev</a></li>
+      <li v-on:click="iword=0"><a href="#">First</a></li>
+      <li v-on:click="points += 3"><a href="#"><span class="glyphicon glyphicon-thumbs-up"></span></a></li>
+      <li v-on:click="points -= 3"><a href="#"><span class="glyphicon glyphicon-thumbs-down"></span></a></li>
+      <li v-on:click="iword=iwordLast"><a href="#">Last</a></li>
+      <li v-on:click="iword=Math.min(words.length-1, iword+wordsPerPage)"><a href="#">Next</a></li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<div id="footer">
+  <ul>
+    <li>{{ 'today' }}, total days: {{ 'totalStudyDays' }}/{{totalDays}}, first day: {{ 'firstDay' }}</li>
+    <li>pass: {{ 'passed' }}, fail: {{ 'failed' }}, passed this page: {{ 'passCurPage' }}</li>
+    <li>Total points: <span class="label label-default">{{ 'totalPoints + points' }}</span>, Today's points: <span class="label label-purple">{{ 'points' }}</span></li>
+  </ul>
+  
+  <div class="container">
+    <p class="text-muted credit">Developed by Z. Forest</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  var ALL_WORDS = {{ words | safe}};
+</script>
+<script src="https://unpkg.com/vue@2.4.4/dist/vue.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}
+

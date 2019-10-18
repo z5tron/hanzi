@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Hanzi - User{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+  <h1>{{ user.username }}</h1>
+  <p>
+    {% if user.name %}{{ user.name }}{% endif %}
+    {% if user.location %}{% endif %}
+  </p>
+  <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
+  <p>User ID: {{ user.id }}</p>
+  <p>Points: {{ user.points }}</p>
+  <ul>
+    {% for book,nwords in books.items() %}
+    <li><a href="{{ url_for('main.practice', book=book) }}">{{ book }} ({{ nwords }})</li>
+    {% endfor %}
+  </ul>
+  <p>Member since {{ moment(user.first_study).format('L') }},
+    Last seen {{ moment(user.last_study).fromNow() }}
+  </p>
+</div>
+{% endblock %}
