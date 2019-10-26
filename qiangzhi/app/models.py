@@ -64,6 +64,16 @@ class Progress(db.Model):
     points = db.Column(db.Integer, default = 0)
     total_points = db.Column(db.Integer, default=0)
 
+class Score(db.Model):
+    __tablename__ = "score"
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'study_date', name="unique_word_book"),
+    )
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    study_date = db.Column(db.Integer, nullable=False)
+    score = db.Column(db.Integer, default = 0)
+    
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))

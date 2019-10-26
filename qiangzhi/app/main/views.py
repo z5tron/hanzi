@@ -7,6 +7,27 @@ from .. import db
 from flask_login import login_required
 from ..models import User, Progress
 
+def get_user_progress(userid, tz_offset=240):
+    loc_t = datetime.utcnow() - timedelta(minutes=tz_offset)
+    utc_cutoff = datetime.utcnow() - timedelta(hours=loc_t.hour, 
+                                               minutes=loc_t.minute)
+    words = {}
+    total_points, today_points = 0, 0
+    for w in Progress.query.filter_by(user_id=userid).order_by(Progress.study_date.desc()).all():
+        if w.word_id not in words:
+            words[w.word_id] = {
+                'word': w.word, 'book': w.book, 'chapter': w.chapter,
+                'trial': w.trial,
+                'study_date': w.study_date.strftime("%Y-%m-%dT%H:%M:%S.%f%z"),
+                'word_id': w.word_id, 'total_points': w.total_points,
+                'score': 0, 'user_id': w.user_id}
+            total_points += w.total_points if w.total_points < 5000 else 0
+        if w.study_date > utc_cutoff:
+            words[w.word_id]['score'] += w.points
+            today_points += w.points
+    return { 'total_points': total_points, 'today_points': today_points}
+
+
 @main.route('/secret')
 @login_required
 def secret():
@@ -22,19 +43,21 @@ def user():
     username = session.get("username", "")
     user = User.query.filter_by(username=username).first_or_404()
     books = {}
+    user_progress = get_user_progress(user.id)
     for p in Progress.query.filter_by(user_id=user.id).order_by(Progress.study_date):
         if not p.book: continue
         books.setdefault(p.book, 0)
         books[p.book] += 1
+    user.total_points = user_progress['total_points']
+    user.today_points = user_progress['today_points']
+    session['total_points'] = user.total_points
+    session['today_points'] = user.today_points
     return render_template('user.html', user=user, books=books)
 
 def get_practice_list(book, tz_offset = 240):
     loc_t = datetime.utcnow() - timedelta(minutes=tz_offset)
     utc_cutoff = datetime.utcnow() - timedelta(hours=loc_t.hour,
                                                minutes=loc_t.minute)
-    print("local now", loc_t)
-    print("utc_now", datetime.utcnow())
-    print("utc_cutoff:", utc_cutoff)
     words = {}
     for w in Progress.query.filter_by(book=book).order_by(Progress.study_date.desc()).all():
         if w.word_id not in words:
@@ -47,16 +70,16 @@ def get_practice_list(book, tz_offset = 240):
         if w.study_date > utc_cutoff:
             words[w.word_id]['score'] += w.points
             
-        
     return sorted(words.values(), key=lambda x: x['total_points'])
-    
+
 @main.route('/practice')
 @login_required
 def practice():
     book = request.args.get('book')
     all_words = get_practice_list(book)
     # print(all_words)
-    return render_template('words.html', book=book,
+    return render_template('words.html', book=book, totalPoints = session.get("total_points", 0),
+                           todayPoints = session.get("today_points", 0),
                            words=json.dumps(all_words, indent=4, ensure_ascii=False))
 
 @main.route('/words/<book>')

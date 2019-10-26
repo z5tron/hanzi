@@ -11,7 +11,8 @@
   </p>
   <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
   <p>User ID: {{ user.id }}</p>
-  <p>Points: {{ user.points }}</p>
+  <p>Points: {{ user.total_points }}</p>
+  <p>Today Points: {{ user.today_points }}</p>
   <ul>
     {% for book,nwords in books.items() %}
     <li><a href="{{ url_for('main.practice', book=book) }}">{{ book }} ({{ nwords }})</li>
