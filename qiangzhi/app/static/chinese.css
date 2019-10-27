@@ -36,6 +36,14 @@ pre.word-cell {
     font-family: Adobe Kaiti Std,STKaiti,KaiTi,BiauKai,"Microsoft YaHei",微软雅黑,"MicrosoftJhengHei",华文细黑,STHeiti,MingLiu;
 }
 
+h1.the-word {
+    font-size: 100px;
+    font-family: KaiTi;
+    line-height: 120px;
+    white-space: nowrap;
+    font-family: Adobe Kaiti Std,STKaiti,KaiTi,BiauKai,"Microsoft YaHei",微软雅黑,"MicrosoftJhengHei",华文细黑,STHeiti,MingLiu;
+}
+
 button.btn-answer {
     padding: 3px 4px;
 }

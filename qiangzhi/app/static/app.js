@@ -53,6 +53,11 @@ var app = new Vue({
     },
   },
   methods: {
+    scoreTag: function(w) {
+      if (w.score == 0) return '';
+      else if (w.score < 0) return 'danger';
+      else if (w.score > 0) return 'primary';
+    },
     showNextList: function() {
       console.log(this.iword, this.iword + this.wordsPerPage);
       var i0 = this.iword;
