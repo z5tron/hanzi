@@ -25,7 +25,6 @@ var app = new Vue({
     bookList: [],
     bookSelected: "",
     skipNewWords: false,
-    test_message: "",
   },
   computed: {
     wordList: function() {
@@ -54,11 +53,6 @@ var app = new Vue({
     },
   },
   methods: {
-    scoreTag: function(w) {
-      if (w.score == 0) return '';
-      else if (w.score < 0) return 'danger';
-      else if (w.score > 0) return 'primary';
-    },
     showNextList: function() {
       console.log(this.iword, this.iword + this.wordsPerPage);
       var i0 = this.iword;
@@ -137,6 +131,5 @@ var app = new Vue({
       self.words.push(ALL_WORDS[i]);
     }
     console.log("passed ?");
-    this.test_message = "words: " + ALL_WORDS.length;
   },
 })

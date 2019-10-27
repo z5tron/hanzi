@@ -13,9 +13,9 @@
   <p>User ID: {{ user.id }}</p>
   <p>Points: {{ user.total_points }}</p>
   <p>Today Points: {{ user.today_points }}</p>
-  <ul class="list-group">
+  <ul>
     {% for book,nwords in books.items() %}
-    <li class="list-group-item"><a href="{{ url_for('main.practice', book=book) }}">{{ book }}</a> ({{ nwords }})</li>
+    <li><a href="{{ url_for('main.practice', book=book) }}">{{ book }} ({{ nwords }})</li>
     {% endfor %}
   </ul>
   <p>Member since {{ moment(user.first_study).format('L') }},
