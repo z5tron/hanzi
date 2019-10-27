@@ -25,6 +25,7 @@ var app = new Vue({
     bookList: [],
     bookSelected: "",
     skipNewWords: false,
+    test_message: "",
   },
   computed: {
     wordList: function() {
@@ -136,5 +137,6 @@ var app = new Vue({
       self.words.push(ALL_WORDS[i]);
     }
     console.log("passed ?");
+    this.test_message = "words: " + ALL_WORDS.length;
   },
 })

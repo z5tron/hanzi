@@ -79,7 +79,7 @@ def practice():
     all_words = get_practice_list(book)
     # print(all_words)
     return render_template('words.html', book=book, totalPoints = session.get("total_points", 0),
-                           todayPoints = session.get("today_points", 0),
+                           todayPoints = session.get("today_points", 0), num_words = len(all_words),
                            words=json.dumps(all_words, indent=4, ensure_ascii=False))
 
 @main.route('/words/<book>')

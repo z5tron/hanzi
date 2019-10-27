@@ -9,7 +9,6 @@
 
 {% block styles %}
 {{ super() }}
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
 <link rel="stylesheet" href="{{ url_for('static', filename='chinese.css') }}">
 {% endblock %}
 
@@ -17,71 +16,68 @@
 {% block page_content %}
 <h1>{{ book }}</h1>
 <div id="wordapp">
-<h3>Earned POINTS: <span :class="['label', 'label-points', points > 0 ? 'label-purple' : 'label-danger']"><i class="fas fa-crown"></i>[[ points ]]</span><button id="thumbs-up" type="button" class="btn btn-lg btn-secondary" v-on:click="points += 3"><i class="fas fa-thumbs-up"></i></button><button id="thumbs-down" type="button" class="btn btn-lg btn-secondary" v-on:click="points -= 3"><i class="fas fa-thumbs-down"></i></button>
-</h3>
-passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword ]] out of [[ filterWords.length ]]</span>
+  <h3>Earned POINTS: <span :class="['label', 'label-points', points > 0 ? 'label-purple' : 'label-danger']"><i class="fas fa-crown"></i>[[ points ]]</span><button id="thumbs-up" type="button" class="btn btn-lg btn-secondary" v-on:click="points += 3"><i class="fas fa-thumbs-up"></i></button><button id="thumbs-down" type="button" class="btn btn-lg btn-secondary" v-on:click="points -= 3"><i class="fas fa-thumbs-down"></i></button>
+  </h3>passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword ]] out of {{ num_words }} ([[ words.length ]])</span>
 
-<nav aria-label="page navigation">
-  <ul class="pagination">
+  <nav aria-label="page navigation">
+    <ul class="pagination">
       <li class="page-item" v-on:click="iword=Math.max(0, iword-wordsPerPage)"><a class="page-link" href="#/">Prev</a></li>
       <li class="page-item" v-on:click="iword=0"><a class="page-link" href="#/">First</a></li>
       <li class="page-item" v-on:click="iword=iwordLast"><a class="page-link" href="#/">Last</a></li>
       <li class="page-item" v-on:click="iword=Math.min(words.length-1, iword+wordsPerPage)"><a class="page-link" href="#/">Next</a></li>
-  </ul>
-</nav>
+    </ul>
+  </nav>
 
 
-<template  v-for="(word,iw) in wordList">
-<div :class="['card', 'mb-3', 'border-' + scoreTag(word)]" style="width: 24rem;" v-if="show(word)">
-  <div class="card-body">
-    <form method="post" action="http://www.chinese-dictionary.org" class="inline">
-      <div :class="['card-body', 'text-' + scoreTag(word)]">
-	<h1 class="card-title the-word">[[ word.word ]]</h1>
-	<h6 class="card-subtitle mb-2 text-muted">[[ word.study_date ]]</h6>
-	<a id="btn-pass" type="button" name="stat-pass" class="card-link" v-on:click="markPoints(word, 10)" :disabled="word.score > 0" href="#/">P(+10)</a>
-	<a id="btn-pass" type="button" name="stat-pass" class="card-link" v-on:click="markPoints(word, 2)" :disabled="word.score > 0" href="#/">G(+2)</a>
-	<a id="btn-fail" type="button" name="stat-fail" class="card-link" v-on:click="markPoints(word, -10)" :disabled="word.score < 0" href="#/">Fail</a>
-	<!-- button id="btn-skip" type="button" name="stat-skip" class="btn btn-default btn-block" v-on:click="skipWord(word)">Skip</button -->
-	<!-- button id="btn-skip" type="button" name="stat-fail" class="btn btn-default btn-block" v-on:click="markPoints(word, 1000000)" :disabled="word.score < 0">IgnoreForEver</button -->
-        <input type="hidden" name="dico" :value="[[ word.word ]]"></input>
-        <input type="hidden" name="dl" value="en"></input>
-	<button type="submit" class="btn btn-default  btn-answer" name="search-word" value="submit_value" style="margin-left:18px">Search</button>
+  <template  v-for="(word,iw) in wordList">
+    <div :class="['card', 'mb-3', 'border-' + scoreTag(word)]" style="width: 24rem;" v-if="show(word)">
+      <div class="card-body">
+	<form method="post" action="http://www.chinese-dictionary.org" class="inline">
+	  <div :class="['card-body', 'text-' + scoreTag(word)]">
+	    <h1 class="card-title the-word">[[ word.word ]]</h1>
+	    <h6 class="card-subtitle mb-2 text-muted">[[ word.study_date ]]</h6>
+	    <a id="btn-pass" type="button" name="stat-pass" class="card-link" v-on:click="markPoints(word, 10)" :disabled="word.score > 0" href="#/">P(+10)</a>
+	    <a id="btn-pass" type="button" name="stat-pass" class="card-link" v-on:click="markPoints(word, 2)" :disabled="word.score > 0" href="#/">G(+2)</a>
+	    <a id="btn-fail" type="button" name="stat-fail" class="card-link" v-on:click="markPoints(word, -10)" :disabled="word.score < 0" href="#/">Fail</a>
+	    <!-- button id="btn-skip" type="button" name="stat-skip" class="btn btn-default btn-block" v-on:click="skipWord(word)">Skip</button -->
+	    <!-- button id="btn-skip" type="button" name="stat-fail" class="btn btn-default btn-block" v-on:click="markPoints(word, 1000000)" :disabled="word.score < 0">IgnoreForEver</button -->
+              <input type="hidden" name="dico" :value="[[ word.word ]]" />
+              <input type="hidden" name="dl" value="en" />
+	      <button type="submit" class="btn btn-default  btn-answer" name="search-word" value="submit_value" style="margin-left:18px">Search</button>
+	  </div>
+	  <p id="wordStat" class="text-muted"> score=[[ word.score ]], <!-- freq=[[ word.ifreq ]], --> points=<span :class='{label: true, "label-danger": word.total_points < 0, "label-default": word.total_points >= 0}'>[[ word.total_points ]]</span>, [[ dateFormat(word.study_date) ]]</p>
+	</form>
       </div>
-      <p id="wordStat" class="text-muted"> score=[[ word.score ]], <!-- freq=[[ word.ifreq ]], --> points=<span :class='{label: true, "label-danger": word.total_points < 0, "label-default": word.total_points >= 0}'>[[ word.total_points ]]</span>, [[ dateFormat(word.study_date) ]]</p>
-    </form>
-  </div>
-</div>
-</template>
+    </div>
+  </template>
 
-<nav aria-label="page navigation">
-  <ul class="pagination">
+  <nav aria-label="page navigation">
+    <ul class="pagination">
       <li class="page-item" v-on:click="iword=Math.max(0, iword-wordsPerPage)"><a class="page-link" href="#">Prev</a></li>
       <li class="page-item" v-on:click="iword=0"><a class="page-link" href="#">First</a></li>
       <li class="page-item" v-on:click="iword=iwordLast"><a class="page-link" href="#">Last</a></li>
       <li class="page-item" v-on:click="iword=Math.min(words.length-1, iword+wordsPerPage)"><a class="page-link" href="#">Next</a></li>
-  </ul>
-</nav>
+    </ul>
+  </nav>
 
-<div id="footer">
-  <ul>
-    <li>{{ 'today' }}, total days: {{ 'totalStudyDays' }}/{{totalDays}}, first day: {{ 'firstDay' }}</li>
-    <li>pass: [[ passed ]], fail: [[ failed ]], passed this page: [[ passCurPage ]]</li>
-    <li>Total points: <span class="label label-default">{{ totalPoints + todayPoints }}</span>, Today's points: <span class="label label-purple">{{ todayPoints }}</span></li>
-  </ul>
-  
-  <div class="container">
-    <p class="text-muted credit">Developed by Z. Forest</p>
+  <div id="footer">
+    <ul>
+      <li>{{ 'today' }}, total days: {{ 'totalStudyDays' }}/{{totalDays}}, first day: {{ 'firstDay' }}</li>
+      <li>pass: [[ passed ]], fail: [[ failed ]], passed this page: [[ passCurPage ]]</li>
+      <li>Total points: <span class="label label-default">{{ totalPoints + todayPoints }}</span>, Today's points: <span class="label label-purple">{{ todayPoints }}</span></li>
+    </ul>
+    <p>TEST: [[ test_message ]]</p>
+    <div class="container">
+      <p class="text-muted credit">Developed by Z. Forest</p>
+    </div>
   </div>
-</div>
 </div>
 
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
-<script>
-  var ALL_WORDS = {{ words | safe}};
-</script>
+<script>var ALL_WORDS = {{ words | safe}};</script>
 <script src="https://unpkg.com/vue@2.4.4/dist/vue.js"></script>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 {% endblock %}
