@@ -4,7 +4,9 @@
 
 {% block head %}
 {{ super() }}
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+{{ moment.include_jquery() }}
+{{ moment.include_moment() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='chinese.css') }}">
 {% endblock %}
 
 
@@ -23,7 +25,7 @@
     </div>
     <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-	<li><a href="/">Home</a></li>
+	<li><a href="/user">Home</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
 	{% if current_user.is_authenticated %}
@@ -61,5 +63,4 @@
 
 {% block scripts %}
 {{ super() }}
-{{ moment.include_moment() }}
 {% endblock %}
