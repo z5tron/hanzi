@@ -9,7 +9,7 @@ div.container {
 }
 div.word {
     /* width: 300px; */
-    padding: 0px;
+    padding: 5px;
 }
 
 div.control button {
@@ -22,10 +22,16 @@ div.toolset {
 div.word-box {
     clear: left;
     margin: 15px 5px 15px 2px;
-    padding: 5px 0px;
+    padding: 5px 5px;
+}
+div.word-world {
+    border: 1px solid;
+    border-radius: 10px;
+    margin: 2px;
+    overflow: auto;
 }
 
-pre.word-cell {
+p.word-cell {
     padding: 0px;
     margin-top: 0px;
     margin-bottom: 0px;
