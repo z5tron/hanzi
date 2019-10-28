@@ -118,7 +118,7 @@ def cleanup_progress():
         else:
             p_info[p.word]['total'] += 1
             del_id_list.append(p.id)
-        if len(del_id_list) > 200: break
+        if len(del_id_list) > 500: break
     s = "DELETE {} rows\n".format(len(del_id_list))
     for pid in del_id_list:
         p = db.session.query(Progress).filter_by(id=pid).first()
