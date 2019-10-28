@@ -112,14 +112,19 @@ def dump_progress():
 def cleanup_progress():
     p_info = {}
     del_id_list = []
-    for p in Progress.query.all().order_by(Progress.study_date.desc()):
+    for p in Progress.query.order_by(Progress.study_date.desc()).all():
         if p.word not in p_info:
             p_info[p.word] = { 'max_trial': p.trial, 'total': 1 }
         else:
             p_info[p.word]['total'] += 1
             del_id_list.append(p.id)
-    
-            
+    s = "DELETE {} rows\n".format(len(del_id_list))
+    for pid in del_id_list:
+        p = db.session.query(Progress).filter_by(id=pid).first()
+        s += p.json() + "\n"
+        db.session.delete(p)
+    db.session.commit()
+    return s, 200, {'Content-Type': 'text/plain; charset=utf-8'}
             
 @main.route('/print', methods=['GET'])
 def printWordsMain():
