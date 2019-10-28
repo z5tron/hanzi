@@ -14,7 +14,7 @@
 
 
 {% block page_content %}
-<h1>{{ book }}</h1>
+<h1>书：{{ book }}</h1>
 <div id="wordapp">
 <h3>Earned POINTS: <span :class="['label', 'label-points', points > 0 ? 'label-purple' : 'label-danger']"><span class="glyphicon glyphicon-star"></span>{{ todayPoints }}</span><button id="thumbs-up" type="button" class="btn btn-lg btn-secondary" v-on:click="points += 3"><span class="glyphicon glyphicon-thumbs-up"></span></button><button id="thumbs-down" type="button" class="btn btn-lg btn-secondary" v-on:click="points -= 3"><span class="glyphicon glyphicon-thumbs-down"></span></button>
 </h3>
