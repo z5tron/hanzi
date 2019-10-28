@@ -101,6 +101,26 @@ def save_words():
         
     return jsonify(data)
 
+@main.route('/dump-progress', methods=['GET'])
+def dump_progress():
+    s = ""
+    for p in Progress.query.all():
+        s += p.json() + "\n"
+    return s, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+@main.route('/cleanup-progress', methods=['GET'])
+def cleanup_progress():
+    p_info = {}
+    del_id_list = []
+    for p in Progress.query.all().order_by(Progress.study_date.desc()):
+        if p.word not in p_info:
+            p_info[p.word] = { 'max_trial': p.trial, 'total': 1 }
+        else:
+            p_info[p.word]['total'] += 1
+            del_id_list.append(p.id)
+    
+            
+            
 @main.route('/print', methods=['GET'])
 def printWordsMain():
     return current_app.send_static_file("print.html")

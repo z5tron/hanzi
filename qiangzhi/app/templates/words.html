@@ -47,7 +47,7 @@ passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword
         </div>
       </div>
       <div class="word col-xs-10"><p id="word" v-bind:class="['word-cell', status(word)]">[[ word.word ]]</p>
-	<p id="wordStat"> score=[[ word.score ]], <!-- freq=[[ word.ifreq ]], --> points=<span :class='{label: true, "label-danger": word.total_points < 0, "label-default": word.total_points >= 0}'>[[ word.total_points ]]</span>, [[ dateFormat(word.study_date) ]]</p>
+	<p id="wordStat"> score=[[ word.score ]], <!-- freq=[[ word.ifreq ]], --> points=<span :class='{label: true, "label-danger": word.total_points < 0, "label-default": word.total_points >= 0}'>[[ word.total_points ]]</span>, [[ word.trial ]], [[ dateFormat(word.study_date) ]]</p>
       </div>
     </form>
   </div>

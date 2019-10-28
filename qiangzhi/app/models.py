@@ -1,5 +1,6 @@
 from datetime import datetime
 import hashlib
+import json
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_login import UserMixin
@@ -63,7 +64,22 @@ class Progress(db.Model):
     trial = db.Column(db.Integer, default = 0)
     points = db.Column(db.Integer, default = 0)
     total_points = db.Column(db.Integer, default=0)
-
+    # retired = db.Column(db.Integer, default = 0)
+    
+    def json(self):
+        return json.dumps({
+            'id': self.id,
+            'user_id': self.user_id,
+            'word_id': self.word_id,
+            'word': self.word,
+            'book': self.book,
+            'chapter': self.chapter,
+            'study_date': self.study_date.strftime("%Y-%M-%dT%H:%M:%S.%f%z"),
+            'trial': self.trial,
+            'points': self.points,
+            'total_points': self.total_points }, sort_keys=True)
+    
+                          
 class Score(db.Model):
     __tablename__ = "score"
     __table_args__ = (
