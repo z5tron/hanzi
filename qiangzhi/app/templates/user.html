@@ -14,7 +14,7 @@
   <p>Points: {{ user.total_points }}</p>
   <p>Today Points: {{ user.today_points }}</p>
   <ul>
-    {% for book,nwords in books.items() %}
+    {% for book,nwords in books %}
     <li><a href="{{ url_for('main.practice', book=book) }}">{{ book }} ({{ nwords }})</li>
     {% endfor %}
   </ul>

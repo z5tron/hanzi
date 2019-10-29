@@ -52,6 +52,7 @@ def user():
     user.today_points = user_progress['today_points']
     session['total_points'] = user.total_points
     session['today_points'] = user.today_points
+    books = sorted(books.items(), key = lambda x: x[0])
     return render_template('user.html', user=user, books=books)
 
 def get_practice_list(book, tz_offset = 240):
