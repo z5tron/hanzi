@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from flask import jsonify, render_template, render_template_string, session, redirect, url_for, request
 from . import main
-from .. import db
+from .. import db, hanzi_words
 from flask_login import login_required
 from ..models import User, Progress
 
@@ -78,6 +78,8 @@ def get_practice_list(book, tz_offset = 240):
 def practice():
     book = request.args.get('book')
     all_words = get_practice_list(book)
+    for w in all_words:
+        w['related'] = hanzi_words.get(w['word'], [])
     # print(all_words)
     return render_template('words.html', book=book, totalPoints = session.get("total_points", 0),
                            todayPoints = session.get("today_points", 0),

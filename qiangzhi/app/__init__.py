@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from flask import Flask
 from flask_moment import Moment
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 
-from config import config
+from config import config, basedir
 
 db = SQLAlchemy()
 bootstrap = Bootstrap()
@@ -15,6 +17,10 @@ moment = Moment()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 
+hanzi_words = {}
+for line in open(os.path.join(basedir, "hanzi_words.txt")):
+    hanzi_words[line[0]] = line[2:].split()
+    
 # application factory
 def create_app(config_name):
     app = Flask(__name__, instance_relative_config=True)
