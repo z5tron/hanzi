@@ -64,9 +64,10 @@ class Progress(db.Model):
     trial = db.Column(db.Integer, default = 0)
     points = db.Column(db.Integer, default = 0)
     total_points = db.Column(db.Integer, default=0)
-    # retired = db.Column(db.Integer, default = 0)
+    retired = db.Column(db.Integer, default = 0)
     
     def json(self):
+        import pytz
         return json.dumps({
             'id': self.id,
             'user_id': self.user_id,
@@ -74,8 +75,9 @@ class Progress(db.Model):
             'word': self.word,
             'book': self.book,
             'chapter': self.chapter,
-            'study_date': self.study_date.strftime("%Y-%M-%dT%H:%M:%S.%f%z"),
+            'study_date': pytz.utc.localize(self.study_date).strftime("%Y-%m-%d %H:%M:%S.%f%z"),
             'trial': self.trial,
+            'retired': self.retired,
             'points': self.points,
             'total_points': self.total_points }, sort_keys=True)
     
