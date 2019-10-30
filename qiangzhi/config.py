@@ -21,7 +21,10 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = "postgresql://alex:abc123@localhost/hanzi"
 
-
+class MySQLConfig(Config):
+    # mysqlclient (a maintained fork of MySQL-Python)
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://alex:abc123@localhost/hanzi"
+    
 class HerokuConfig(ProductionConfig):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', '__NONE__')
     
@@ -34,13 +37,18 @@ class HerokuConfig(ProductionConfig):
         file_handler = StreamHandler()
         file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)
-        
+
+class PythonAnywhereConfig(ProductionConfig):
+    # mysqlclient (a maintained fork of MySQL-Python)
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://z5tron:abc123def@z5tron.mysql.pythonanywhere-services.com/hanzi"
+    
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
     'default': DevelopmentConfig,
     'heroku': HerokuConfig,
-
+    'mysql': MySQLConfig,
+    'pythonanywhere': PythonAnywhereConfig,
     'SSL_REDIRECT': False,
 }
