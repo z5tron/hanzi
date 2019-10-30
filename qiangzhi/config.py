@@ -40,7 +40,7 @@ class HerokuConfig(ProductionConfig):
 
 class PythonAnywhereConfig(ProductionConfig):
     # mysqlclient (a maintained fork of MySQL-Python)
-    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://z5tron:abc123def@z5tron.mysql.pythonanywhere-services.com/hanzi"
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://z5tron:abc123def@z5tron.mysql.pythonanywhere-services.com/z5tron$hanzi"
     
 config = {
     'development': DevelopmentConfig,
