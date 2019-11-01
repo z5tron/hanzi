@@ -88,20 +88,23 @@ var app = new Vue({
       if (score > 0) {
 	this.passed += 1;
 	this.passCurPage += 1;
-	this.points += score > 2 ? 2:1;
+	this.points += score;
+	word.num_pass += 1;
       } else {
 	this.failed += 1;
 	this.points -= 1;
+	word.num_fail += 1;
 	if (word.score > 30) this.points -= 1;
       }
-      this.$set(word, 'score', score);
+      word.cur_xpoints += score;
+      this.$set(word, 'xpoints', score);
       this.$set(word, 'dateStudy', dt.toISOString());
       this.saveWords([ word ]);
     },
     skipWord: function(word) { word.skip = true; },
     status: function(word) {
-      if (word.score == 0) return 'new';
-      else if (word.score < 0) return 'wrong';
+      if (word.cur_xpoints == 0) return 'new';
+      else if (word.cur_xpoints < 0) return 'fail';
       else return 'pass';
     },
     show: function(word) {

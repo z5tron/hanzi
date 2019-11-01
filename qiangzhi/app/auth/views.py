@@ -1,11 +1,20 @@
 from flask import render_template, redirect, request, url_for, flash, session
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, current_user
 
 from . import auth
 from .. import db
 from ..models import User
 from .forms import LoginForm, RegistrationForm
 
+@auth.before_app_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.ping()
+        #if request.endpoint \
+        #   and request.blueprint != 'auth' \
+        #       and request.endpoint != 'static':
+        #    return redirect(url_for('main.index'))
+        
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()

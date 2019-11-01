@@ -1,12 +1,12 @@
+body {
+    padding-top: 50px;
+}
+
 .main-charword {
     font-size: 200px;
     font-family: Georgia, "Times New Roman", KaiTi, STKaiti, serif;
 }
 
-div.container {
-    /* float: left; */
-    width: 500px;
-}
 div.word {
     /* width: 300px; */
     padding: 5px;
@@ -24,6 +24,17 @@ div.word-box {
     margin: 15px 5px 15px 2px;
     padding: 5px 5px;
 }
+
+div.word-cell {
+    border: 1px solid;
+    border-radius: 10px;
+    margin: 2px;
+}
+
+p.word-cell.fail {
+    color: red;
+}
+
 div.word-world {
     border: 1px solid;
     border-radius: 10px;
@@ -32,6 +43,16 @@ div.word-world {
 }
 
 p.word-cell {
+    padding: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 100px;
+    line-height: 120px;
+    white-space: nowrap;
+    font-family: Adobe Kaiti Std,STKaiti,KaiTi,BiauKai,"Microsoft YaHei",微软雅黑,"MicrosoftJhengHei",华文细黑,STHeiti,MingLiu,AR PL UKai CN;
+}
+
+h2.the-word {
     padding: 0px;
     margin-top: 0px;
     margin-bottom: 0px;

@@ -14,11 +14,17 @@
 
 
 {% block page_content %}
-<h1>书：{{ book }}</h1>
 <div id="wordapp">
+  <div class="jumbotron">
+    <div class="container">
+      <h1>书：{{ book }} ({{ words | length }})</h1>
 <h3>Earned POINTS: <span :class="['label', 'label-points', points > 0 ? 'label-purple' : 'label-danger']"><span class="glyphicon glyphicon-star"></span>{{ todayPoints }}</span><button id="thumbs-up" type="button" class="btn btn-lg btn-secondary" v-on:click="points += 3"><span class="glyphicon glyphicon-thumbs-up"></span></button><button id="thumbs-down" type="button" class="btn btn-lg btn-secondary" v-on:click="points -= 3"><span class="glyphicon glyphicon-thumbs-down"></span></button>
 </h3>
 passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword ]] out of [[ filterWords.length ]]</span>
+    <!-- p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p -->
+  </div>
+</div>
+
 
 <div class="row">
   <div class="col-xs-12">
@@ -31,24 +37,25 @@ passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword
   </div>
 </div>
 
+      
 <div class="word-world" v-for="(word,iw) in wordList">
   <div class="word-box" v-if="show(word)">
     <form method="post" action="http://www.chinese-dictionary.org" class="inline">
       <div class="toolset col-xs-2">
 	<div class="control raw">
-	  <button id="btn-pass" type="button" name="stat-pass" class="btn btn-success btn-block btn-answer" v-on:click="markPoints(word, 10)" :disabled="word.score > 0">P(+10)</button>
-	  <button id="btn-pass" type="button" name="stat-pass" class="btn btn-success btn-block btn-answer" v-on:click="markPoints(word, 2)" :disabled="word.score > 0">G(+2)</button>
+	  <button id="btn-pass" type="button" name="stat-pass" class="btn btn-success btn-block btn-answer" v-on:click="markPoints(word, 10)" :disabled="word.cur_xpoints > 0">P(+10)</button>
+	  <button id="btn-pass" type="button" name="stat-pass" class="btn btn-success btn-block btn-answer" v-on:click="markPoints(word, 2)" :disabled="word.cur_xpoints > 0">G(+2)</button>
           <input type="hidden" name="dico" :value="[[ word.word ]]" />
           <input type="hidden" name="dl" value="en" />
 	  <button type="submit" class="btn btn-default btn-block btn-answer" name="search-word" value="submit_value">Search</button>
-	  <button id="btn-fail" type="button" name="stat-fail" class="btn btn-danger btn-block btn-answer" v-on:click="markPoints(word, -10)" :disabled="word.score < 0">Fail</button>
+	  <button id="btn-fail" type="button" name="stat-fail" class="btn btn-danger btn-block btn-answer" v-on:click="markPoints(word, -10)" :disabled="word.cur_xpoints < 0">Fail</button>
 	  <!-- button id="btn-skip" type="button" name="stat-skip" class="btn btn-default btn-block" v-on:click="skipWord(word)">Skip</button -->
-	  <!-- button id="btn-skip" type="button" name="stat-fail" class="btn btn-default btn-block" v-on:click="markPoints(word, 1000000)" :disabled="word.score < 0">IgnoreForEver</button -->
+	  <!-- button id="btn-skip" type="button" name="stat-fail" class="btn btn-default btn-block" v-on:click="markPoints(word, 1000000)" :disabled="word.cur_xpoints < 0">IgnoreForEver</button -->
         </div>
       </div>
       <div class="word col-xs-10"><p id="word" v-bind:class="['word-cell', status(word)]">[[ word.word ]]</p>
 	<p><span class="word-related" v-for="r in word.related">[[ r ]]</span></p>
-	<p id="wordStat"> score=[[ word.score ]], <!-- freq=[[ word.ifreq ]], --> points=<span :class='{label: true, "label-danger": word.total_points < 0, "label-default": word.total_points >= 0}'>[[ word.total_points ]]</span>, [[ word.trial ]], [[ dateFormat(word.study_date) ]]</p>
+	<p id="wordStat"> score=[[ word.cur_xpoints ]], <!-- freq=[[ word.ifreq ]], --> points=<span :class='{label: true, "label-danger": word.tot_xpoints < 0, "label-default": word.tot_xpoints >= 0}'>[[ word.tot_xpoints ]]</span>, [[ word.num_pass ]]/[[ word.num_fail ]], [[ dateFormat(word.study_date) ]]</p>
       </div>
     </form>
   </div>
@@ -73,7 +80,7 @@ passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword
   <ul>
     <li>{{ 'today' }}, total days: {{ 'totalStudyDays' }}/{{totalDays}}, first day: {{ 'firstDay' }}</li>
     <li>pass: [[ passed ]], fail: [[ failed ]], passed this page: [[ passCurPage ]]</li>
-    <li>Total points: <span class="label label-default">{{ totalPoints + todayPoints }}</span>, Today's points: <span class="label label-purple">{{ todayPoints }}</span></li>
+    <li>Total points: <span class="label label-default">{{ tot_xpoints + cur_xpoints }}</span>, Today's points: <span class="label label-purple">{{ cur_xpoints }}</span></li>
   </ul>
   
   <div class="container">
