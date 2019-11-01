@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block meta %}
+{{ super() }}
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+{% endblock %}
+
+
+{% block page_content %}
+<div id="wordprint">
+
+  <h1>田字格</h1>
+  <div class="container">
+    <form method="POST">
+      <div class="form-group">
+	<label for="title">标题</label>
+	<input type="text" class="form-control" name="title" v-model="title"/>
+      </div>
+      <div class="form-group">
+	<label for="wordText">内容</label>
+	<textarea type="text" name="wordText" v-model="wordText" class="form-control" aria-label="With textarea" aria-describedby="textHelp" ></textarea>
+	<small id="textHelp" class="form-text text-muted">请输入汉字（少于360字），英文标点及字母将被忽略</small>
+      </div>
+      <div class="form-check">
+	<input type="checkbox" class="form-check-input" id="removeDuplicate" v-model="dedupe" name="dedupe">
+	<label class="form-check-label" for="removeDuplicate">忽略重复字</label>
+      </div>
+      <div></div>
+      <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ super() }}
+<script src="/static/print.js"></script>
+{% endblock %}
+

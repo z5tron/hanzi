@@ -1,11 +1,13 @@
 import json
 from datetime import datetime, timedelta
+from os import path, getcwd, chdir
+import subprocess, uuid
 
-from flask import jsonify, render_template, render_template_string, session, redirect, url_for, request
+from flask import jsonify, render_template, render_template_string, session, redirect, url_for, request, send_file
 from . import main
 from .. import db, hanzi_words
-from flask_login import login_required
-from ..models import User, Progress
+from flask_login import login_required, current_user
+from ..models import User, Progress, Word, Score
 
 def get_user_progress(userid, tz_offset=240):
     loc_t = datetime.utcnow() - timedelta(minutes=tz_offset)
@@ -42,18 +44,10 @@ def index():
 def user():
     username = session.get("username", "")
     user = User.query.filter_by(username=username).first_or_404()
-    books = {}
-    user_progress = get_user_progress(user.id)
-    for p in Progress.query.filter_by(user_id=user.id).order_by(Progress.study_date):
-        if not p.book: continue
-        books.setdefault(p.book, 0)
-        books[p.book] += 1
-    user.total_points = user_progress['total_points']
-    user.today_points = user_progress['today_points']
-    session['total_points'] = user.total_points
-    session['today_points'] = user.today_points
-    books = sorted(books.items(), key = lambda x: x[0])
-    return render_template('user.html', user=user, books=books)
+    books = []
+    for w in db.session.query(Word.book).distinct():
+        books.append(w.book)
+    return render_template('user.html', user=user, books=sorted(books))
 
 def get_practice_list(book, tz_offset = 240):
     loc_t = datetime.utcnow() - timedelta(minutes=tz_offset)
@@ -77,29 +71,54 @@ def get_practice_list(book, tz_offset = 240):
 @login_required
 def practice():
     book = request.args.get('book')
-    all_words = get_practice_list(book)
-    for w in all_words:
-        w['related'] = hanzi_words.get(w['word'], [])
-    # print(all_words)
-    return render_template('words.html', book=book, totalPoints = session.get("total_points", 0),
-                           todayPoints = session.get("today_points", 0),
-                           words=json.dumps(all_words, indent=4, ensure_ascii=False))
+    words = []
+    for w in Word.query.filter_by(book=book).all():
+        # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
+        #    score = w.xpoints
+        words.append({ 'id': w.id, 'word': w.word,
+                       'book': w.book, 'chapter': w.chapter,
+                       'study_date': w.study_date.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                       'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
+                       'num_pass': w.num_pass, 'num_fail': w.num_fail })
+    words = json.dumps(words)
+    return render_template('words.html', book=book, tot_xpoints = current_user.tot_xpoints,
+                           cur_xpoints = current_user.cur_xpoints, words=words)
 
-@main.route('/words/<book>')
-def words(book):
-    return jsonify(get_practice_list(book))
+# @main.route('/words/<book>')
+# def words(book):
+#     istart = request.args.get('istart', 0)
+#     words = []
+#     for w in Word.query.filter_by(book=book).all(): #slice(istart, istart+10):
+#         words.append({
+#             'word': w.word, 'book': w.book, 'chapter': w.chapter,
+#             'study_date': w.study_date.strftime("%Y-%m-%dT%H:%M:%S.%f%z"),
+#             'id': w.id, 'total_points': w.total_points,
+#             'score': 0, 'user_id': w.user_id})
+
+#     return jsonify(words)
 
 @main.route('/save', methods=['POST'])
 @login_required
 def save_words():
     data = request.get_json()
+    uid = current_user.id
     for w in data['words']:
-        p = Progress(user_id=w['user_id'], word_id=w['word_id'],
+        p = Progress(user_id=uid, word_id=w['id'],
                      word = w['word'], book = w['book'], chapter = w['chapter'],
                      study_date = datetime.utcnow(),
-                     trial = w['trial'] + 1,
-                     points = w['score'], total_points = w['total_points'] + w['score'])
+                     xpoints = w['xpoints'])
         db.session.add(p)
+        for wbi in Word.query.filter_by(word=w['word']):
+            t = datetime.utcnow()
+            if t.strftime("%Y%m%d") == wbi.study_date.strftime("%Y%m%d"):
+                wbi.cur_xpoints += w['xpoints']
+            else:
+                wbi.cur_xpoints = w['xpoints']
+            wbi.study_date = t
+            wbi.tot_xpoints += w['xpoints']
+            if w['xpoints'] > 0: wbi.num_pass += 1
+            elif w['xpoints'] < 0: wbi.num_fail += 1
+            db.session.add(wbi)
         db.session.commit()
         
     return jsonify(data)
@@ -132,7 +151,7 @@ def cleanup_progress():
             
 @main.route('/print', methods=['GET'])
 def printWordsMain():
-    return current_app.send_static_file("print.html")
+    return render_template("print.html")
 
 @main.route('/print', methods=['POST'])
 def printWords():
@@ -160,6 +179,7 @@ def printWords():
 
     print(len(words), "'{}'".format(words))
     cwd = getcwd()
+    OUTPUT = '/tmp'
     chdir(OUTPUT)
     ts = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     ftex = "{}-{}".format(ts, uuid.uuid4())
