@@ -18,7 +18,7 @@
   <div class="jumbotron">
     <div class="container">
       <h1>书：{{ book }} ({{ words | length }})</h1>
-<h3>Earned POINTS: <span :class="['label', 'label-points', cur_xpoints > 0 ? 'label-purple' : 'label-danger']"><span class="glyphicon glyphicon-star"></span>[[ cur_xpoints ]]</span><button id="thumbs-up" type="button" class="btn btn-lg btn-secondary" v-on:click="cur_xpoints += 3; num_thumbs_up += 1"><span class="glyphicon glyphicon-thumbs-up">[[ num_thumbs_up ]]</span></button><button id="thumbs-down" type="button" class="btn btn-lg btn-secondary" v-on:click="cur_xpoints -= 3; num_thumbs_up -=1"><span class="glyphicon glyphicon-thumbs-down"></span></button>
+      <h3>Earned POINTS: <span :class="['label', 'label-points', cur_xpoints > 0 ? 'label-purple' : 'label-danger']"><span class="glyphicon glyphicon-star"></span>[[ cur_xpoints ]]</span><button id="thumbs-up" type="button" class="btn btn-lg btn-secondary" v-on:click="cur_xpoints += 3; num_thumbs_up += 1"><span class="glyphicon glyphicon-thumbs-up">[[ num_thumbs_up ]]</span></button><button id="thumbs-down" type="button" class="btn btn-lg btn-secondary" v-on:click="cur_xpoints -= 3; num_thumbs_up -=1"><span class="glyphicon glyphicon-thumbs-down"></span></button>
 </h3>
 passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword ]] out of [[ filterWords.length ]]</span>
     <!-- p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p -->
@@ -55,7 +55,7 @@ passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword
       </div>
       <div class="word col-xs-10"><p id="word" v-bind:class="['word-cell', status(word)]">[[ word.word ]]</p>
 	<p><span class="word-related" v-for="r in word.related">[[ r ]]</span></p>
-	<p id="wordStat">chapter [[ word.chapter ]], score=[[ word.cur_xpoints ]], <!-- freq=[[ word.ifreq ]], --> points=<span :class='{label: true, "label-danger": word.tot_xpoints < 0, "label-default": word.tot_xpoints >= 0}'>[[ word.tot_xpoints ]]</span>, [[ word.num_pass ]]/[[ word.num_fail ]], [[ dateFormat(word.study_date) ]]</p>
+	<p id="wordStat">chapter [[ word.chapter ]], score=[[ word.cur_xpoints ]], streak=[[ word.streak ]], <!-- freq=[[ word.ifreq ]], --> points=<span :class='{label: true, "label-danger": word.tot_xpoints < 0, "label-default": word.tot_xpoints >= 0}'>[[ word.tot_xpoints ]]</span>, [[ word.num_pass ]]/[[ word.num_fail ]], [[ dateFormat(word.study_date) ]]</p>
       </div>
     </form>
   </div>

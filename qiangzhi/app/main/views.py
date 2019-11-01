@@ -72,14 +72,14 @@ def get_practice_list(book, tz_offset = 240):
 def practice():
     book = request.args.get('book')
     words = []
-    for w in Word.query.filter_by(book=book).order_by(Word.chapter, Word.tot_xpoints).all():
+    for w in Word.query.filter_by(book=book).filter(Word.streak <= 5).order_by(Word.chapter, Word.tot_xpoints).all():
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
         words.append({ 'id': w.id, 'word': w.word,
                        'book': w.book, 'chapter': w.chapter,
                        'study_date': w.study_date.strftime("%Y-%m-%dT%H:%M:%S%z"),
                        'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
-                       'num_pass': w.num_pass, 'num_fail': w.num_fail,
+                       'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
                        'related': hanzi_words.get(w.word, []) })
     # words = json.dumps(words)
     return render_template('words.html', book=book, tot_xpoints = current_user.tot_xpoints,
@@ -117,8 +117,17 @@ def save_words():
                 wbi.cur_xpoints = w['xpoints']
             wbi.study_date = t
             wbi.tot_xpoints += w['xpoints']
-            if w['xpoints'] > 0: wbi.num_pass += 1
-            elif w['xpoints'] < 0: wbi.num_fail += 1
+            # fix unitialized streak
+            if wbi.streak == 0 and wbi.num_fail == 0 and w['xpoints'] > 0:
+                wbi.streak = wbi.num_pass
+                
+            if w['xpoints'] > 0:
+                wbi.num_pass += 1
+                wbi.streak += 1
+            elif w['xpoints'] < 0:
+                wbi.num_fail += 1
+                wbi.streak = 0
+
             db.session.add(wbi)
         db.session.commit()
         
