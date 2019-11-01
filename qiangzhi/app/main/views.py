@@ -72,7 +72,7 @@ def get_practice_list(book, tz_offset = 240):
 def practice():
     book = request.args.get('book')
     words = []
-    for w in Word.query.filter_by(book=book).order_by(Word.tot_xpoints).all():
+    for w in Word.query.filter_by(book=book).order_by(Word.chapter, Word.tot_xpoints).all():
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
         words.append({ 'id': w.id, 'word': w.word,
@@ -81,7 +81,7 @@ def practice():
                        'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
                        'num_pass': w.num_pass, 'num_fail': w.num_fail,
                        'related': hanzi_words.get(w.word, []) })
-    words = json.dumps(words)
+    # words = json.dumps(words)
     return render_template('words.html', book=book, tot_xpoints = current_user.tot_xpoints,
                            cur_xpoints = current_user.cur_xpoints, words=words)
 

@@ -12,7 +12,8 @@ var app = new Vue({
     message: 'Hello Vue!',
     passed: 0,
     failed: 0,
-    points: 0,
+    num_thumbs_up: 0,
+    cur_xpoints: 0,
     passCurPage: 0,
     totalPoints: 0,
     totalDays: 0,
@@ -88,13 +89,12 @@ var app = new Vue({
       if (score > 0) {
 	this.passed += 1;
 	this.passCurPage += 1;
-	this.points += score;
+	this.cur_xpoints += score;
 	word.num_pass += 1;
-      } else {
+      } else if (score < 0) {
 	this.failed += 1;
-	this.points -= 1;
+	this.cur_xpoints -= 1;
 	word.num_fail += 1;
-	if (word.score > 30) this.points -= 1;
       }
       word.cur_xpoints += score;
       this.$set(word, 'xpoints', score);
@@ -114,12 +114,12 @@ var app = new Vue({
     },
     saveWords: function(words) {
       var self = this;
-      console.log(JSON.stringify({ words: words, points: self.points}));
+      console.log(JSON.stringify({ words: words, points: self.cur_xpoints}));
       $.ajax({
 	type: 'POST',
 	url: './save',
 	contentType:"application/json",
-	data: JSON.stringify({ words: words, points: self.points}),
+	data: JSON.stringify({ words: words, points: self.cur_xpoints}),
 	dataType: 'json',
 	success: function(data) {
 	    console.log("saved!", data);

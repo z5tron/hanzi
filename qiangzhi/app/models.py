@@ -68,7 +68,7 @@ class Word(db.Model):
     tot_xpoints = db.Column(db.Integer, default = 0)
     num_pass = db.Column(db.Integer, default=0)
     num_fail = db.Column(db.Integer, default=0)
-    
+    streak = db.Column(db.Integer, default=0)
     
 class Progress(db.Model):
     __tablename__ = "progress"
