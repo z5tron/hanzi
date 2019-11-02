@@ -40,13 +40,41 @@ def secret():
 def index():
     return render_template("index.html")
 
+@main.route('/import-book')
+@login_required
+def import_book():
+    book = request.args.get('book')
+    chapter = request.args.get('chapter')
+    if not book or not chapter:
+        books = []
+        for w in db.session.query(Word.book, Word.chapter).distinct():
+            books.append([w.book, w.chapter])
+        return render_template('import-book.html', books=sorted(books))
+    else:
+        inserted = {}
+        for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter_by(chapter=chapter).all():
+            if w.word in inserted: continue
+            inserted[w.word] = 1
+        new_word = {}
+        for w in Word.query.filter_by(book=book).filter_by(chapter=chapter).all():
+            if w.word in inserted or w.word in new_word: continue
+            new_word[w.word] = 1
+
+        for w in new_word.keys():
+            wi = Word(user_id=current_user.id, word=w,
+                      book = book, chapter=chapter)
+                      
+            db.session.add(wi)
+        db.session.commit()
+        return redirect(url_for('main.user'))
+        
 @main.route('/user')
 @login_required
 def user():
     username = session.get("username", "")
     user = User.query.filter_by(username=username).first_or_404()
     books = []
-    for w in db.session.query(Word.book).distinct():
+    for w in db.session.query(Word.book).filter(Word.user_id==current_user.id).distinct():
         books.append(w.book)
     return render_template('user.html', user=user, books=sorted(books))
 
@@ -73,7 +101,7 @@ def get_practice_list(book, tz_offset = 240):
 def practice():
     book = request.args.get('book')
     words = []
-    for w in Word.query.filter_by(book=book).filter(Word.streak <= 5).order_by(Word.chapter, Word.tot_xpoints).all():
+    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.chapter, Word.tot_xpoints).all():
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
         words.append({ 'id': w.id, 'word': w.word,

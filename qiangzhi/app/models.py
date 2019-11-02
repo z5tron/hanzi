@@ -56,7 +56,7 @@ class User(UserMixin, db.Model):
 class Word(db.Model):
     __tablename__ = "word"
     __table_args__ = (
-        db.UniqueConstraint('word', 'book', 'chapter', name="unique_word_book"),
+        db.UniqueConstraint('user_id', 'word', 'book', 'chapter', name="unique_word_book"),
     )
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
