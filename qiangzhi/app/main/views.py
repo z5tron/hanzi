@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timedelta
 from os import path, getcwd, chdir
 import subprocess, uuid
+import pytz
 
 from flask import jsonify, render_template, render_template_string, session, redirect, url_for, request, send_file
 from . import main
@@ -103,12 +104,18 @@ def practice():
 def save_words():
     data = request.get_json()
     uid = current_user.id
+    if current_user.last_study.strftime("%Y%m%d") != datetime.utcnow().strftime("%Y%m%d"):
+        current_user.cur_xpoints = 0
+    current_user.last_study = pytz.utc.localize(datetime.utcnow())
+    saved = []
     for w in data['words']:
         p = Progress(user_id=uid, word_id=w['id'],
                      word = w['word'], book = w['book'], chapter = w['chapter'],
                      study_date = datetime.utcnow(),
                      xpoints = w['xpoints'])
         db.session.add(p)
+        current_user.cur_xpoints += w['xpoints']
+        current_user.tot_xpoints += w['xpoints']
         for wbi in Word.query.filter_by(word=w['word']):
             t = datetime.utcnow()
             if t.strftime("%Y%m%d") == wbi.study_date.strftime("%Y%m%d"):
@@ -129,9 +136,12 @@ def save_words():
                 wbi.streak = 0
 
             db.session.add(wbi)
+            saved.append(wbi.json())
+            saved[-1]['iword'] = w['iword']
         db.session.commit()
-        
-    return jsonify(data)
+    db.session.add(current_user)
+    db.session.commit()
+    return jsonify(saved)
 
 @main.route('/dump-progress', methods=['GET'])
 def dump_progress():

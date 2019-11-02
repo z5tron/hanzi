@@ -48,7 +48,7 @@ passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword
           <input type="hidden" name="dico" :value="[[ word.word ]]" />
           <input type="hidden" name="dl" value="en" />
 	  <button type="submit" class="btn btn-default btn-block btn-answer" name="search-word" value="submit_value">Search</button>
-	  <button id="btn-fail" type="button" name="stat-fail" class="btn btn-danger btn-block btn-answer" v-on:click="markPoints(word, -10)" :disabled="word.cur_xpoints < 0">Fail</button>
+	  <button id="btn-fail" type="button" name="stat-fail" class="btn btn-danger btn-block btn-answer" v-on:click="markPoints(word, -2)" :disabled="word.cur_xpoints < 0">Fail</button>
 	  <!-- button id="btn-skip" type="button" name="stat-skip" class="btn btn-default btn-block" v-on:click="skipWord(word)">Skip</button -->
 	  <!-- button id="btn-skip" type="button" name="stat-fail" class="btn btn-default btn-block" v-on:click="markPoints(word, 1000000)" :disabled="word.cur_xpoints < 0">IgnoreForEver</button -->
         </div>
@@ -78,7 +78,7 @@ passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword
   <ul>
     <li>{{ 'today' }}, total days: {{ 'totalStudyDays' }}/{{totalDays}}, first day: {{ 'firstDay' }}</li>
     <li>pass: [[ passed ]], fail: [[ failed ]], passed this page: [[ passCurPage ]]</li>
-    <li>Total points: <span class="label label-default">{{ tot_xpoints + cur_xpoints }}</span>, Today's points: <span class="label label-purple">[[ cur_xpoints ]]</span></li>
+    <li>points: <span class="label label-purple">[[ cur_xpoints ]]</span></li>
   </ul>
   
   <div class="container">

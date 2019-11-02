@@ -1,5 +1,6 @@
 from datetime import datetime
 import hashlib
+import pytz
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -69,7 +70,22 @@ class Word(db.Model):
     num_pass = db.Column(db.Integer, default=0)
     num_fail = db.Column(db.Integer, default=0)
     streak = db.Column(db.Integer, nullable=False, default=0)
-    
+
+    def json(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'word': self.word,
+            'book': self.book,
+            'chapter': self.chapter,
+            'study_date': pytz.utc.localize(self.study_date).strftime("%Y-%m-%d %H:%M:%S.%f%z"),
+            'cur_xpoints': self.cur_xpoints,
+            'tot_xpoints': self.tot_xpoints,
+            'num_pass': self.num_pass,
+            'num_fail': self.num_fail,
+            'streak': self.streak,
+        }
+        
 class Progress(db.Model):
     __tablename__ = "progress"
     id = db.Column(db.Integer, primary_key=True)
