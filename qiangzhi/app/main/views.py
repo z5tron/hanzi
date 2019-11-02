@@ -46,8 +46,15 @@ def import_book():
     book = request.args.get('book')
     chapter = request.args.get('chapter')
     if not book or not chapter:
+        existing_books = {}
+        for w in Word.query.filter_by(user_id=current_user.id).all():
+            k = "{}__{}".format(w.book, w.chapter)
+            if k in existing_books: continue
+            existing_books[k] = 1
         books = []
         for w in db.session.query(Word.book, Word.chapter).distinct():
+            k = "{}__{}".format(w.book, w.chapter)
+            if k in existing_books: continue
             books.append([w.book, w.chapter])
         return render_template('import-book.html', books=sorted(books))
     else:
