@@ -145,6 +145,8 @@ var app = new Vue({
       self.words.push(ALL_WORDS[i]);
       self.words[i].iword = i;
     }
+    self.cur_xpoints = CUR_XPOINTS;
+    self.tot_xpoints = TOT_XPOINTS;
     console.log("passed ?");
   },
 })

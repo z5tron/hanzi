@@ -91,6 +91,8 @@ passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword
 {% block scripts %}
 {{ super() }}
 <script>
+  var CUR_XPOINTS = {{ cur_xpoints }};
+  var TOT_XPOINTS = {{ tot_xpoints }};
   var ALL_WORDS = {{ words | tojson|safe}};
 </script>
 <script src="https://unpkg.com/vue@2.4.4/dist/vue.js"></script>
