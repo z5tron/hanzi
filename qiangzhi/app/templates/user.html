@@ -12,9 +12,9 @@
   </p>
   <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
   <p>User ID: {{ user.id }}</p>
-  <p>Points: {{ user.xpoints }}</p>
+  <p>Points: {{ user.tot_xpoints }}</p>
   <p>Streak: {{ user.streak }}</p>
-  <p>Today Points: {{ user.today_points }}</p>
+  <p>Today Points: {{ user.cur_xpoints }}</p>
   <p>Recent Study: {{ moment(user.last_study).format('LLL') }}</p>
   <ul>
     {% for book in books %}
