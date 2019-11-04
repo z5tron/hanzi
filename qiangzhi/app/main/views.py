@@ -43,29 +43,14 @@ def index():
 @login_required
 def user():
     username = session.get("username", "")
+    if not username:
+        return redirect(url_for('auth.login'))
     user = User.query.filter_by(username=username).first_or_404()
     books = []
     for w in db.session.query(Word.book).distinct():
         books.append(w.book)
     return render_template('user.html', user=user, books=sorted(books))
 
-def get_practice_list(book, tz_offset = 240):
-    loc_t = datetime.utcnow() - timedelta(minutes=tz_offset)
-    utc_cutoff = datetime.utcnow() - timedelta(hours=loc_t.hour,
-                                               minutes=loc_t.minute)
-    words = {}
-    for w in Progress.query.filter_by(book=book).order_by(Progress.study_date.desc()).all():
-        if w.word_id not in words:
-            words[w.word_id] = {
-                'word': w.word, 'book': w.book, 'chapter': w.chapter,
-                'trial': w.trial,
-                'study_date': w.study_date.strftime("%Y-%m-%dT%H:%M:%S.%f%z"),
-                'word_id': w.word_id, 'total_points': w.total_points,
-                'score': 0, 'user_id': w.user_id}
-        if w.study_date > utc_cutoff:
-            words[w.word_id]['score'] += w.points
-            
-    return sorted(words.values(), key=lambda x: x['total_points'])
 
 @main.route('/practice')
 @login_required
@@ -130,7 +115,7 @@ def save_words():
 
             db.session.add(wbi)
         db.session.commit()
-        
+
     return jsonify(data)
 
 @main.route('/dump-progress', methods=['GET'])
