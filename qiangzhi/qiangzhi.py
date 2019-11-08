@@ -137,7 +137,21 @@ def calc_xpoints():
             word_points[p.user_id][p.word]['session_date'] = y4md
         if word_points[p.user_id][p.word]['study_date'] < p.study_date:
             word_points[p.user_id][p.word]['study_date'] = p.study_date
-        
+
+    for k,sc in score.items():
+        y4md = k // 100
+        uid = k % 100
+        s = Score.query.filter_by(user_id=uid, study_y4md=y4md).first()
+        if s:
+            s.xpoints = sc.xpoints
+            s.study_date = sc.study_date
+            s.num_pass = sc.num_pass
+            s.num_fail = sc.num_fail
+        else:
+            s = sc
+        db.session.add(s)
+    db.session.commit()
+
     for uid, words in word_points.items():
         tot_points = 0
         for ws, wd in words.items():
