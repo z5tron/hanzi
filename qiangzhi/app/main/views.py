@@ -181,7 +181,10 @@ def save_words():
     score = Score.query.filter_by(user_id=current_user.id, study_y4md=current_user.session_date).first()
     if not score:
         score = Score(user_id=current_user.id, study_y4md=current_user.session_date)
+        db.session.add(score)
+        db.session.commit()
     score.xpoints += data['xpoints']
+    score.study_date = datetime.utcnow()
     if data['xpoints'] > 0: score.num_pass += 1
     elif data['xpoints'] < 0: score.num_fail += 1
     db.session.add(score)

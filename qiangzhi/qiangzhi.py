@@ -36,7 +36,128 @@ def add_users():
 def deploy():
     upgrade()
     
+
+@app.cli.command("import-word")
+@click.argument('fname')
+def import_word(fname):
+    import json
+
+    Word.query.delete()
+    db.session.commit()
+
+    for line in open(fname, 'r'):
+        if line.find("#") >= 0: continue
+        j = json.loads(line)
+
+        study_date = datetime.strptime(j['study_date'], "%Y-%m-%d %H:%M:%S.%f%z")
+        y4md = study_date.year * 10000 + study_date.month * 100 + study_date.day
+        if j['__tablename__'] == 'word':
+            created_date = datetime.strptime(j['created_date'], "%Y-%m-%d %H:%M:%S")
+            w = Word(id = j['id'], word=j['word'], user_id=j['user_id'],
+                     created_date=created_date,
+                     book = j['book'], chapter=j['chapter'],
+                     tot_xpoints = j['tot_xpoints'],
+                     num_pass = j['num_pass'],
+                     num_fail = j['num_fail'],
+                     study_date = study_date)
+            db.session.add(w)
+    db.session.commit()
+
+@app.cli.command("import-progress")
+@click.argument('fname')
+def import_progress(fname):
+    import json
+
+    Progress.query.delete()
+    db.session.commit()
+
+    for line in open(fname, 'r'):
+        if line.find("#") >= 0: continue
+        j = json.loads(line)
+
+        study_date = datetime.strptime(j['study_date'], "%Y-%m-%d %H:%M:%S.%f%z")
+        y4md = study_date.year * 10000 + study_date.month * 100 + study_date.day
+        if j['__tablename__'] == 'progress':
+            p = Progress(user_id=j['user_id'], word_id=j['word_id'], word=j['word'],
+                         book=j['book'], chapter=j['chapter'],study_date=study_date, 
+                         xpoints=int(j['xpoints']))
+            db.session.add(p)
+
+    db.session.commit()
+
+
+@app.cli.command("adjust-progress-xpoints")
+def adjust_progress_xpoints():
+    user_study_date = {}
+    daily_stat = {}
     
+    for p in Progress.query.order_by(Progress.study_date).all():
+        if p.xpoints <= 2 and p.xpoints >= -2: continue
+        if p.xpoints > 2: p.xpoints = 2
+        elif p.xpoints < -2: p.xpoints = -2
+        db.session.add(p)
+    db.session.commit()
+
+
+@app.cli.command("calc-xpoints")
+def calc_xpoints():
+    score = {}
+    word_points = {}
+    for p in Progress.query.order_by(Progress.study_date).all():
+        t = p.study_date
+        y4md = t.year * 10000 + t.month * 100 + t.day
+        k = y4md * 100 + p.user_id 
+        score.setdefault(k, Score(user_id = p.user_id, study_y4md = y4md, xpoints=0, num_pass=0, num_fail=0, num_thumb_up=0, num_thumb_down=0 ))
+        score[k].xpoints += p.xpoints
+        score[k].study_date = p.study_date
+
+        word_points.setdefault(p.user_id, {})
+        word_points[p.user_id].setdefault(
+            p.word, {'tot_xpoints': 0,
+                     'num_pass': 0,
+                     'num_fail': 0,
+                     'cur_xpoints': 0,
+                     'streak': 0,
+                     'study_date': datetime(1970, 1, 1),
+                     'session_date': 19700101})
+        word_points[p.user_id][p.word]['tot_xpoints'] += p.xpoints;
+        if p.xpoints > 0:
+            score[k].num_pass += 1
+            word_points[p.user_id][p.word]['num_pass'] += 1
+            word_points[p.user_id][p.word]['streak'] += 1
+        elif p.xpoints > 0:
+            score[k].num_fail += 1
+            word_points[p.user_id][p.word]['num_fail'] += 1
+            word_points[p.user_id][p.word]['streak'] = 0
+
+        if y4md == word_points[p.user_id][p.word]['session_date']:
+            word_points[p.user_id][p.word]['cur_xpoints'] += p.xpoints
+        else:
+            word_points[p.user_id][p.word]['cur_xpoints'] = p.xpoints
+            word_points[p.user_id][p.word]['session_date'] = y4md
+        if word_points[p.user_id][p.word]['study_date'] < p.study_date:
+            word_points[p.user_id][p.word]['study_date'] = p.study_date
+        
+    for uid, words in word_points.items():
+        tot_points = 0
+        for ws, wd in words.items():
+            tot_points += wd['tot_xpoints']
+            for w in Word.query.filter_by(user_id=uid, word=ws).all():
+                w.study_date = wd['study_date']
+                w.cur_xpoints = wd['cur_xpoints']
+                w.tot_xpoints = wd['tot_xpoints']
+                w.num_pass = wd['num_pass']
+                w.num_fail = wd['num_fail']
+                w.streak = wd['streak']
+                db.session.add(w)
+        db.session.commit()
+        user = User.query.filter_by(id=uid).first()
+        print(uid, user.name, user.tot_xpoints, tot_points)
+        user.tot_xpoints = tot_points
+        db.session.add(user)
+        db.session.commit()
+
+
 @app.cli.command("import-db")
 @click.argument('fname')
 def import_db(fname):
