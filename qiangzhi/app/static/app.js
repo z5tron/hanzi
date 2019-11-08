@@ -14,8 +14,8 @@ var app = new Vue({
     failed: 0,
     num_thumbs_up: 0,
     cur_xpoints: 0,
+    tot_xpoints: 0,
     passCurPage: 0,
-    totalPoints: 0,
     totalDays: 0,
     totalStudyDays: 0,
     firstDay: 99991231,
@@ -122,7 +122,18 @@ var app = new Vue({
 	data: JSON.stringify({ words: words, points: self.cur_xpoints}),
 	dataType: 'json',
 	success: function(data) {
-	    console.log("saved!", data);
+	  console.log("saved!", data);
+	  for(i = 0; i < data.length; ++i) {
+	    var w = data[i];
+	    var wc = self.words[w.iword];
+	    wc.streak = w.streak;
+	    wc.tot_xpoints = w.tot_xpoints;
+	    wc.study_date = w.study_date;
+	  }
+	  for (i = 0; i < words.length; ++i) {
+	    self.cur_xpoints += words[i].xpoints;
+	    self.tot_xpoints += words[i].xpoints;
+	  }
 	},
 	error: function(data) { console.log("ERROR", data); },
       });
@@ -132,7 +143,10 @@ var app = new Vue({
     var self = this;
     for (i = 0; i < ALL_WORDS.length; ++i) {
       self.words.push(ALL_WORDS[i]);
+      self.words[i].iword = i;
     }
+    self.cur_xpoints = CUR_XPOINTS;
+    self.tot_xpoints = TOT_XPOINTS;
     console.log("passed ?");
   },
 })

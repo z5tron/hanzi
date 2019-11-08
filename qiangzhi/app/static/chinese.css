@@ -57,7 +57,9 @@ p.word-cell.pass {
 p.word-cell.fail {
     color: red;
 }
-
+p.word-cell.pass {
+     color: blue;
+}
 div.word-world {
     border: 1px solid;
     border-radius: 10px;

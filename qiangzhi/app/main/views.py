@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timedelta
 from os import path, getcwd, chdir
 import subprocess, uuid
+import pytz
 
 from flask import jsonify, render_template, render_template_string, session, redirect, url_for, request, send_file
 from . import main
@@ -41,6 +42,41 @@ def secret():
 def index():
     return render_template("index.html")
 
+@main.route('/import-book')
+@login_required
+def import_book():
+    book = request.args.get('book')
+    chapter = request.args.get('chapter')
+    if not book or not chapter:
+        existing_books = {}
+        for w in Word.query.filter_by(user_id=current_user.id).all():
+            k = "{}__{}".format(w.book, w.chapter)
+            if k in existing_books: continue
+            existing_books[k] = 1
+        books = []
+        for w in db.session.query(Word.book, Word.chapter).distinct():
+            k = "{}__{}".format(w.book, w.chapter)
+            if k in existing_books: continue
+            books.append([w.book, w.chapter])
+        return render_template('import-book.html', books=sorted(books))
+    else:
+        inserted = {}
+        for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter_by(chapter=chapter).all():
+            if w.word in inserted: continue
+            inserted[w.word] = 1
+        new_word = {}
+        for w in Word.query.filter_by(book=book).filter_by(chapter=chapter).all():
+            if w.word in inserted or w.word in new_word: continue
+            new_word[w.word] = 1
+
+        for w in new_word.keys():
+            wi = Word(user_id=current_user.id, word=w,
+                      book = book, chapter=chapter)
+                      
+            db.session.add(wi)
+        db.session.commit()
+        return redirect(url_for('main.user'))
+        
 @main.route('/user')
 @login_required
 def user():
@@ -49,7 +85,7 @@ def user():
         return redirect(url_for('auth.login'))
     user = User.query.filter_by(username=username).first_or_404()
     books = []
-    for w in db.session.query(Word.book).distinct():
+    for w in db.session.query(Word.book).filter(Word.user_id==current_user.id).distinct():
         books.append(w.book)
     score = db.session.query(func.sum(Score.xpoints)).filter(Score.user_id==user.id).first()
     user.tot_xpoints = score[0]
@@ -71,7 +107,7 @@ def practice():
     book = request.args.get('book')
     words = []
     t0 = datetime.utcnow() - timedelta(minutes=10)
-    for w in Word.query.filter_by(book=book).filter(Word.streak <= 5).order_by(Word.chapter, Word.tot_xpoints).limit(300):
+    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.chapter, Word.tot_xpoints).limit(300):
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
         y4md = w.study_date.year*10000+w.study_date.month*100+w.study_date.day
@@ -114,6 +150,7 @@ def practice():
 def save_words():
     data = request.get_json()
     uid = current_user.id
+
     w = data['word']
     p = Progress(user_id=uid, word_id=w['id'],
                  word = w['word'], book = w['book'], chapter = w['chapter'],

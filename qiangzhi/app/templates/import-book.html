@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block meta %}
+{{ super() }}
+<meta name="viewport" content="width=device-width, initial-scale=1.">
+{% endblock %}
+
+{% block title %}Hanzi - import book{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='chinese.css') }}">
+{% endblock %}
+
+
+{% block page_content %}
+<ul>
+  {% for book,chapter in books %}
+  <li><a href="/import-book?book={{ book }}&chapter={{ chapter }}">{{ book }} - {{ chapter }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}
+

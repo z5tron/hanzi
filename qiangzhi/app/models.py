@@ -1,5 +1,6 @@
 from datetime import datetime
 import hashlib
+import pytz
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -56,7 +57,7 @@ class User(UserMixin, db.Model):
 class Word(db.Model):
     __tablename__ = "word"
     __table_args__ = (
-        db.UniqueConstraint('word', 'book', 'chapter', name="unique_word_book"),
+        db.UniqueConstraint('user_id', 'word', 'book', 'chapter', name="unique_word_book"),
     )
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
@@ -71,7 +72,7 @@ class Word(db.Model):
     num_fail = db.Column(db.Integer, default=0)
     streak = db.Column(db.Integer, default=0)
 
-    
+
 class Progress(db.Model):
     __tablename__ = "progress"
     id = db.Column(db.Integer, primary_key=True)

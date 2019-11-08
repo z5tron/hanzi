@@ -16,6 +16,7 @@
   <p>Streak: {{ user.streak }}</p>
   <p>Today Points: {{ user.cur_xpoints }} ({{ user.session_date }})</p>
   <p>Recent Study: {{ moment(user.last_study).format('LLL') }}</p>
+  <p><a href="/import-book">Import Book</a></p>
   <ul>
     {% for book in books %}
     <li><a href="{{ url_for('main.practice', book=book) }}">{{ book }}</a></li>
