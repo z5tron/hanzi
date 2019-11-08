@@ -21,7 +21,8 @@ class User(UserMixin, db.Model):
     streak = db.Column(db.Integer, default=1)
     days = db.Column(db.Integer, default=0)
     cur_xpoints = db.Column(db.Integer, default=0)
-    
+    session_date = db.Column(db.Integer, default=19700101)
+
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')
@@ -68,7 +69,8 @@ class Word(db.Model):
     tot_xpoints = db.Column(db.Integer, default = 0)
     num_pass = db.Column(db.Integer, default=0)
     num_fail = db.Column(db.Integer, default=0)
-    streak = db.Column(db.Integer, nullable=False, default=0)
+    streak = db.Column(db.Integer, default=0)
+
     
 class Progress(db.Model):
     __tablename__ = "progress"

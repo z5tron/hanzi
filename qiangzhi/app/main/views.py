@@ -9,6 +9,8 @@ from .. import db, hanzi_words
 from flask_login import login_required, current_user
 from ..models import User, Progress, Word, Score
 
+from sqlalchemy.sql import func
+
 def get_user_progress(userid, tz_offset=240):
     loc_t = datetime.utcnow() - timedelta(minutes=tz_offset)
     utc_cutoff = datetime.utcnow() - timedelta(hours=loc_t.hour, 
@@ -49,6 +51,17 @@ def user():
     books = []
     for w in db.session.query(Word.book).distinct():
         books.append(w.book)
+    score = db.session.query(func.sum(Score.xpoints)).filter(Score.user_id==user.id).first()
+    user.tot_xpoints = score[0]
+
+    cur_t = datetime.utcnow()
+    cur_y4md = cur_t.year*10000+cur_t.month*100+cur_t.day
+    score = Score.query.filter_by(user_id=user.id, study_y4md=cur_y4md).first()
+    user.cur_xpoints = 0 if not score else score.xpoints
+    user.session_date = cur_y4md
+    db.session.add(user)
+    db.session.commit()
+
     return render_template('user.html', user=user, books=sorted(books))
 
 
@@ -57,18 +70,31 @@ def user():
 def practice():
     book = request.args.get('book')
     words = []
-    for w in Word.query.filter_by(book=book).filter(Word.streak <= 5).order_by(Word.chapter, Word.tot_xpoints).all():
+    t0 = datetime.utcnow() - timedelta(minutes=10)
+    for w in Word.query.filter_by(book=book).filter(Word.streak <= 5).order_by(Word.chapter, Word.tot_xpoints).limit(300):
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
+        y4md = w.study_date.year*10000+w.study_date.month*100+w.study_date.day
+        if y4md != current_user.session_date:
+            w.cur_xpoints = 0
+            db.session.add(w)
+            db.session.commit()
+
+        # what can be skipped ? streak > 5
+        # recent (within 30 minutes) studied and passed
+        if w.study_date > datetime.utcnow() - timedelta(minutes=30) and w.cur_xpoints > 0: continue
+        # print(w.word, w.cur_xpoints, w.tot_xpoints, w.study_date, end="")
+
         words.append({ 'id': w.id, 'word': w.word,
                        'book': w.book, 'chapter': w.chapter,
                        'study_date': w.study_date.strftime("%Y-%m-%dT%H:%M:%S%z"),
                        'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
+                       'score': 0,
                        'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
                        'related': hanzi_words.get(w.word, []) })
     # words = json.dumps(words)
-    return render_template('words.html', book=book, tot_xpoints = current_user.tot_xpoints,
-                           cur_xpoints = current_user.cur_xpoints, words=words)
+    return render_template(
+        'words.html', user = current_user, book=book, streak=current_user.streak, words=words)
 
 # @main.route('/words/<book>')
 # def words(book):
@@ -88,35 +114,44 @@ def practice():
 def save_words():
     data = request.get_json()
     uid = current_user.id
-    for w in data['words']:
-        p = Progress(user_id=uid, word_id=w['id'],
-                     word = w['word'], book = w['book'], chapter = w['chapter'],
-                     study_date = datetime.utcnow(),
-                     xpoints = w['xpoints'])
-        db.session.add(p)
-        for wbi in Word.query.filter_by(word=w['word']):
-            t = datetime.utcnow()
-            if t.strftime("%Y%m%d") == wbi.study_date.strftime("%Y%m%d"):
-                wbi.cur_xpoints += w['xpoints']
-            else:
-                wbi.cur_xpoints = w['xpoints']
-            wbi.study_date = t
-            wbi.tot_xpoints += w['xpoints']
-            # fix unitialized streak
-            if wbi.streak == 0 and wbi.num_fail == 0 and w['xpoints'] > 0:
-                wbi.streak = wbi.num_pass
-                
-            if w['xpoints'] > 0:
-                wbi.num_pass += 1
-                wbi.streak += 1
-            elif w['xpoints'] < 0:
-                wbi.num_fail += 1
-                wbi.streak = 0
+    w = data['word']
+    p = Progress(user_id=uid, word_id=w['id'],
+                 word = w['word'], book = w['book'], chapter = w['chapter'],
+                 study_date = datetime.utcnow(),
+                 xpoints = data['xpoints'])
+    db.session.add(p)
+    cur_t = datetime.utcnow()
+    for wbi in Word.query.filter_by(word=w['word']):
+        if cur_t.strftime("%Y%m%d") == wbi.study_date.strftime("%Y%m%d"):
+            wbi.cur_xpoints += data['xpoints']
+        else:
+            wbi.cur_xpoints = data['xpoints']
+        wbi.study_date = cur_t
+        wbi.tot_xpoints += data['xpoints']
+        # fix unitialized streak
+        if wbi.streak == 0 and wbi.num_fail == 0 and data['xpoints'] > 0:
+            wbi.streak = wbi.num_pass
+            
+        if data['xpoints'] > 0:
+            wbi.num_pass += 1
+            wbi.streak += 1
+        elif data['xpoints'] < 0:
+            wbi.num_fail += 1
+            wbi.streak = 0
 
-            db.session.add(wbi)
-        db.session.commit()
+        db.session.add(wbi)
+    cur_y4md = cur_t.year*10000+cur_t.month*100+cur_t.day
+    score = Score.query.filter_by(user_id=current_user.id, study_y4md=current_user.session_date).first()
+    if not score:
+        score = Score(user_id=current_user.id, study_y4md=current_user.session_date)
+    score.xpoints += data['xpoints']
+    if data['xpoints'] > 0: score.num_pass += 1
+    elif data['xpoints'] < 0: score.num_fail += 1
+    db.session.add(score)
 
-    return jsonify(data)
+    db.session.commit()
+
+    return jsonify(w)
 
 @main.route('/dump-progress', methods=['GET'])
 def dump_progress():

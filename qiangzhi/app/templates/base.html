@@ -7,6 +7,7 @@
 {{ moment.include_jquery() }}
 {{ moment.include_moment() }}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='chinese.css') }}">
+<link rel='stylesheet' href="{{ url_for('static', filename='typicons.min.css') }}" />
 {% endblock %}
 
 
@@ -26,6 +27,8 @@
       {% if current_user.is_authenticated %}
       <ul class="nav navbar-nav navbar-right">
 	<li><a href="{{ url_for('main.user') }}">{{ current_user.username }}</a></li>
+	<li><a href="#"><i class="typcn typcn-weather-sunny"><span class="badge">0{{ current_user.num_pass}}</span></i></a></li>
+	<li><a href="#"><i class="typcn typcn-weather-downpour"><span class="badge">0{{ current_user.num_fail}}</span></i></a></li>
 	<li><a href="{{ url_for('auth.logout') }}"><span class="glyphicon glyphicon-log-out"></span> Log Out</a></li>
       </ul>
       {% else %}
@@ -65,4 +68,7 @@
 
 {% block scripts %}
 {{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<!-- script src="https://unpkg.com/vue@2.4.4/dist/vue.js"></script -->
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
 {% endblock %}

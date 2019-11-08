@@ -15,85 +15,129 @@
 
 {% block page_content %}
 <div id="wordapp">
-  <div class="jumbotron">
-    <div class="container">
-      <h1>书：{{ book }} ({{ words | length }})</h1>
-      <h3>Earned POINTS: <span :class="['label', 'label-points', cur_xpoints > 0 ? 'label-purple' : 'label-danger']"><span class="glyphicon glyphicon-star"></span>[[ cur_xpoints ]]</span><button id="thumbs-up" type="button" class="btn btn-lg btn-secondary" v-on:click="cur_xpoints += 3; num_thumbs_up += 1"><span class="glyphicon glyphicon-thumbs-up">[[ num_thumbs_up ]]</span></button><button id="thumbs-down" type="button" class="btn btn-lg btn-secondary" v-on:click="cur_xpoints -= 3; num_thumbs_up -=1"><span class="glyphicon glyphicon-thumbs-down"></span></button>
-</h3>
-passed: [[ passed ]], failed: [[ failed ]]. <span id="wordId">Displayed [[ iword ]] out of [[ filterWords.length ]]</span>
-    <!-- p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p -->
+  <!-- div class="jumbotron" -->
+    <div class="page-header">
+      <h1>书：{{ book }}</h1>
+    </div>
+
+    <div>
+      <h4>
+	<span class="score-cell">{{ user.session_date }}</span>
+	<span class="score-cell"><i class="typcn typcn-flag"></i>[[ cur_xpoints ]]</span>
+	<span class="score-cell"><i class="typcn typcn-flash"></i>[[ streak ]]</span>
+	<span class="score-cell"><i class="typcn typcn-weather-sunny"></i>[[ streak ]]</span>
+	<!-- span class="score-cell"><i class="typcn typcn-weather-downpour"></i>1</span -->
+      </h4>
+      <!-- p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p -->
+    </div>
+  <!-- /div -->
+<div class="progress" style="height: 3px">
+  <div class="progress-bar" role="progressbar" value="20" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" v-bind:style="{ width: percent + '%'}">
+    <span class="sr-only">60% Complete</span>
   </div>
 </div>
-
-
-<div class="row">
-  <div class="col-xs-12">
-    <ul class="pager">
-      <li v-on:click="iword=Math.max(0, iword-wordsPerPage)"><a href="#">Prev</a></li>
-      <li v-on:click="iword=0"><a href="#">First</a></li>
-      <li v-on:click="iword=iwordLast"><a href="#">Last</a></li>
-      <li v-on:click="iword=Math.min(words.length-1, iword+wordsPerPage)"><a href="#">Next</a></li>
-    </ul>
-  </div>
-</div>
-
-      
-<div class="word-world" v-for="(word,iw) in wordList">
-  <div class="word-box" v-if="show(word)">
-    <form method="post" action="http://www.chinese-dictionary.org" class="inline">
-      <div class="toolset col-xs-2">
-	<div class="control raw">
-	  <button id="btn-pass" type="button" name="stat-pass" class="btn btn-success btn-block btn-answer" v-on:click="markPoints(word, 2)" :disabled="word.cur_xpoints > 0">P(+2)</button>
-	  <button id="btn-pass" type="button" name="stat-pass" class="btn btn-success btn-block btn-answer" v-on:click="markPoints(word, 1)" :disabled="word.cur_xpoints > 0">G(+1)</button>
-          <input type="hidden" name="dico" :value="[[ word.word ]]" />
-          <input type="hidden" name="dl" value="en" />
-	  <button type="submit" class="btn btn-default btn-block btn-answer" name="search-word" value="submit_value">Search</button>
-	  <button id="btn-fail" type="button" name="stat-fail" class="btn btn-danger btn-block btn-answer" v-on:click="markPoints(word, -10)" :disabled="word.cur_xpoints < 0">Fail</button>
-	  <!-- button id="btn-skip" type="button" name="stat-skip" class="btn btn-default btn-block" v-on:click="skipWord(word)">Skip</button -->
-	  <!-- button id="btn-skip" type="button" name="stat-fail" class="btn btn-default btn-block" v-on:click="markPoints(word, 1000000)" :disabled="word.cur_xpoints < 0">IgnoreForEver</button -->
-        </div>
+    <div>
+      <ul class="pager">
+	<li class="previous"><a href="#" v-on:click="iword=Math.max(0, iword-3)">&larr; Older</a></li>
+	<li class="next"><a href="#" v-on:click="iword=(words.length <= iword+3 ? iword : iword+3)">Newer &rarr;</a></li>
+      </ul>
+    </div>
+  <div class="row">
+    <div class="col-sm-6 col-md-4" v-for="w in active_words">
+      <div :class="['word-box', 'border', 'border-' + word_status(w)]">
+	<div class="well"><p :class="['word-cell', 'text-' + word_status(w)]">[[ w.word ]]</p></div>
+	<p class="word-info">XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.cur_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>. Study: <span>[[ w.study_date ]]</span></p>
+	<p>
+	  <button class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 2)"><span class="glyphicon glyphicon-thumbs-up"></span><span class="glyphicon glyphicon-thumbs-up"></span></button>
+	  <button href="#" class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 1)"><span class="glyphicon glyphicon-thumbs-up"></span></button>
+	  <button href="#" class="submit-ans btn btn-danger" role="button" v-on:click="adj_score(w, -1)"><span class="glyphicon glyphicon-thumbs-down"></span></button>
+	</p>
       </div>
-      <div class="word col-xs-10"><p id="word" v-bind:class="['word-cell', status(word)]">[[ word.word ]]</p>
-	<p><span class="word-related" v-for="r in word.related">[[ r ]]</span></p>
-	<p id="wordStat">chapter [[ word.chapter ]], score=[[ word.cur_xpoints ]], streak=[[ word.streak ]], <!-- freq=[[ word.ifreq ]], --> points=<span :class='{label: true, "label-danger": word.tot_xpoints < 0, "label-default": word.tot_xpoints >= 0}'>[[ word.tot_xpoints ]]</span>, [[ word.num_pass ]]/[[ word.num_fail ]], [[ dateFormat(word.study_date) ]]</p>
-      </div>
-    </form>
+    </div>
   </div>
-</div>
+</div> <!-- app -->
 
-<div class="row">
-  <div class="col-xs-12">
-    <!-- button type="button" class="btn btn-lg btn-primary" --
-      -- v-on:click="showNextList()">Next</button -->
-    <ul class="pager">
-      <li v-on:click="iword=Math.max(0, iword-wordsPerPage)"><a href="#">Prev</a></li>
-      <li v-on:click="iword=0"><a href="#">First</a></li>
-      <li v-on:click="iword=iwordLast"><a href="#">Last</a></li>
-      <li v-on:click="iword=Math.min(words.length-1, iword+wordsPerPage)"><a href="#">Next</a></li>
-    </ul>
-  </div>
-</div>
-
-<div id="footer">
-  <ul>
-    <li>{{ 'today' }}, total days: {{ 'totalStudyDays' }}/{{totalDays}}, first day: {{ 'firstDay' }}</li>
-    <li>pass: [[ passed ]], fail: [[ failed ]], passed this page: [[ passCurPage ]]</li>
-    <li>Total points: <span class="label label-default">{{ tot_xpoints + cur_xpoints }}</span>, Today's points: <span class="label label-purple">[[ cur_xpoints ]]</span></li>
-  </ul>
-  
-  <div class="container">
-    <p class="text-muted credit">Developed by Z. Forest</p>
-  </div>
-</div>
-</div>
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
+
 <script>
-  var ALL_WORDS = {{ words | tojson|safe}};
+var app = new Vue({
+  el: '#wordapp',
+  delimiters: ['[[', ']]'],
+  data: {
+    words: {{ words | tojson | safe }},
+    iword: 0,
+    num_thumbs_up: 0,
+    cur_xpoints: {{ user.cur_xpoints }},
+    tot_xpoints: {{ user.tot_xpoints }},
+    streak: {{ streak }},
+    tot_days: 0,
+    first_day: 99991231,
+    today: 19700101,
+    book: "{{ book }}",
+  },
+  computed: {
+    num_pass: function() { return _.sumBy(this.words, function(o) { return o.score > 0 ? 1 : 0; }); },
+    num_fail: function() { return _.sumBy(this.words, function(o) { return o.score < 0 ? 1 : 0; }); },
+    active_words: function() {
+      return _.slice(this.words, this.iword, this.iword + 3);
+    },
+    percent: function() {
+      var n_per_page = 3;
+      return (this.iword+3)*100/(Math.ceil(this.words.length/3)*3);
+    }
+  },
+  watch: {
+    iword: function(val) {
+      passCurPage = 0;
+    },
+  },
+  methods: {
+    adj_score: function(w, n) {
+      if (w.score != 0) return;
+      var self = this;
+      $.ajax({
+	type: 'POST',
+	url: './save',
+	contentType:"application/json",
+	data: JSON.stringify({ word: w, xpoints: n}),
+	dataType: 'json',
+	success: function(data) {
+          console.log("saved!", data);
+          self.cur_xpoints += n;
+          self.tot_xpoints += n;
+          w.cur_xpoints += n;
+          console.log(this.cur_xpoints);
+	},
+	error: function(data) { console.log("ERROR", data); },
+      });
+    },
+    word_status: function(w) {
+      if (w.cur_xpoints > 0) return "primary";
+      if (w.cur_xpoints < 0) return "danger";
+      return "";
+    },
+    dateFormat: function(str) {
+      if (str) {
+	var date = new Date(str);
+	return date.getFullYear() + "-" + (1+date.getMonth()) + '-' + date.getDate() + " " + date.getHours() + ":" + Math.floor(date.getMinutes() / 10) + date.getMinutes() % 10;
+      } 
+      return "";
+    },
+    status: function(word) {
+      if (word.cur_xpoints == 0) return 'new';
+      else if (word.cur_xpoints < 0) return 'fail';
+      else return 'pass';
+    },
+    saveWords: function(words) {
+    }
+  },
+  mounted: function() {
+    console.log("passed ?");
+  },
+})
 </script>
-<script src="https://unpkg.com/vue@2.4.4/dist/vue.js"></script>
-<script src="{{ url_for('static', filename='app.js') }}"></script>
 {% endblock %}
 
