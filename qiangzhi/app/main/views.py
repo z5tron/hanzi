@@ -93,11 +93,13 @@ def user():
     cur_t = datetime.utcnow()
     cur_y4md = cur_t.year*10000+cur_t.month*100+cur_t.day
     score = Score.query.filter_by(user_id=user.id, study_y4md=cur_y4md).first()
+    print(score.id, score.num_pass)
     user.cur_xpoints = 0 if not score else score.xpoints
+    num_pass_daily = 0 if not score else score.num_pass
     user.session_date = cur_y4md
     db.session.add(user)
     db.session.commit()
-
+    session['num_pass_daily'] = num_pass_daily
     return render_template('user.html', user=user, books=sorted(books))
 
 
@@ -105,6 +107,7 @@ def user():
 @login_required
 def practice():
     book = request.args.get('book')
+    num_pass_daily = session.get("num_pass_daily", 0)
     words = []
     t0 = datetime.utcnow() - timedelta(minutes=10)
     for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.chapter, Word.tot_xpoints).limit(300):
@@ -130,7 +133,8 @@ def practice():
                        'related': hanzi_words.get(w.word, []) })
     # words = json.dumps(words)
     return render_template(
-        'words.html', user = current_user, book=book, streak=current_user.streak, words=words)
+        'words.html', user = current_user, book=book, streak=current_user.streak, words=words,
+        num_pass_daily = num_pass_daily)
 
 # @main.route('/words/<book>')
 # def words(book):

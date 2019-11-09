@@ -70,8 +70,9 @@ var app = new Vue({
     words: {{ words | tojson | safe }},
     iword: 0,
     cur_page_pass: 0,
-    cur_xpoints: {{ user.cur_xpoints }},
-    tot_xpoints: {{ user.tot_xpoints }},
+    cur_xpoints: {{ user.cur_xpoints or 0 }},
+    tot_xpoints: {{ user.tot_xpoints or 0 }},
+    num_pass_daily: {{ num_pass_daily or 0 }},
     streak: {{ streak }},
     tot_days: 0,
     first_day: 99991231,
@@ -79,7 +80,7 @@ var app = new Vue({
     book: "{{ book }}",
   },
   computed: {
-    num_pass: function() { return _.sumBy(this.words, function(o) { return o.cur_xpoints > 0 ? 1 : 0; }); },
+    num_pass: function() { return this.num_pass_daily + _.sumBy(this.words, function(o) { return o.cur_xpoints > 0 ? 1 : 0; }); },
     num_fail: function() { return _.sumBy(this.words, function(o) { return o.cur_xpoints < 0 ? 1 : 0; }); },
     active_words: function() {
       return _.slice(this.words, this.iword, this.iword + 3);
