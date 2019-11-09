@@ -158,7 +158,7 @@ def save_words():
                  xpoints = data['xpoints'])
     db.session.add(p)
     cur_t = datetime.utcnow()
-    for wbi in Word.query.filter_by(word=w['word']):
+    for wbi in Word.query.filter_by(word=w['word']).filter_by(user_id=current_user.id):
         if cur_t.strftime("%Y%m%d") == wbi.study_date.strftime("%Y%m%d"):
             wbi.cur_xpoints += data['xpoints']
         else:
