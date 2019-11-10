@@ -47,6 +47,8 @@
     <div class="col-sm-6 col-md-4" v-for="w in active_words">
       <div :class="['word-box', 'border', 'border-' + word_status(w)]">
 	<div class="well"><p :class="['word-cell', 'text-' + word_status(w)]">[[ w.word ]]</p></div>
+	<p class="cizu"><template v-for="ci in w.related"><span class="cizu">[[ ci ]]</span></template>
+        </p> 
 	<p class="word-info">XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.tot_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>. Study: <span>[[ from_now(w) ]]</span></p>
 	<p>
 	  <button class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 2)"><span class="glyphicon glyphicon-thumbs-up"></span><span class="glyphicon glyphicon-thumbs-up"></span></button>
