@@ -110,7 +110,7 @@ def practice():
     num_pass_daily = session.get("num_pass_daily", 0)
     words = []
     t0 = datetime.utcnow() - timedelta(minutes=10)
-    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.tot_xpoints, Word.Study_date, Word.chapter).limit(200):
+    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.tot_xpoints, Word.study_date, Word.chapter).limit(200):
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
         y4md = w.study_date.year*10000+w.study_date.month*100+w.study_date.day
