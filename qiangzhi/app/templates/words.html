@@ -47,7 +47,7 @@
     <div class="col-sm-6 col-md-4" v-for="w in active_words">
       <div :class="['word-box', 'border', 'border-' + word_status(w)]">
 	<div class="well"><p :class="['word-cell', 'text-' + word_status(w)]">[[ w.word ]]</p></div>
-	<p class="word-info">XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.cur_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>. Study: <span>[[ w.study_date ]]</span></p>
+	<p class="word-info">XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.cur_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>. Study: <span>[[ from_now(w) ]]</span></p>
 	<p>
 	  <button class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 2)"><span class="glyphicon glyphicon-thumbs-up"></span><span class="glyphicon glyphicon-thumbs-up"></span></button>
 	  <button href="#" class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 1)"><span class="glyphicon glyphicon-thumbs-up"></span></button>
@@ -153,10 +153,14 @@ var app = new Vue({
       else if (word.cur_xpoints < 0) return 'fail';
       else return 'pass';
     },
+    from_now: function(w) {
+      return moment(w.study_date, "YYYY-MM-DD h:mm:ssZZ").fromNow();
+    },
     saveWords: function(words) {
     }
   },
   mounted: function() {
+    // _.forEach(this.words, function(w) { w.study_date = new Date(w.study_date); });
     console.log("passed ?");
   },
 })

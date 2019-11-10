@@ -110,14 +110,14 @@ def practice():
     num_pass_daily = session.get("num_pass_daily", 0)
     words = []
     t0 = datetime.utcnow() - timedelta(minutes=10)
-    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.chapter, Word.tot_xpoints).limit(300):
+    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.tot_xpoints, Word.Study_date, Word.chapter).limit(200):
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
         y4md = w.study_date.year*10000+w.study_date.month*100+w.study_date.day
         if y4md != current_user.session_date:
             w.cur_xpoints = 0
             db.session.add(w)
-            db.session.commit()
+            # db.session.commit()
 
         # what can be skipped ? streak > 5
         # recent (within 30 minutes) studied and passed
@@ -126,11 +126,12 @@ def practice():
 
         words.append({ 'id': w.id, 'word': w.word,
                        'book': w.book, 'chapter': w.chapter,
-                       'study_date': w.study_date.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                       'study_date': pytz.utc.localize(w.study_date).strftime("%Y-%m-%dT%H:%M:%S%z"),
                        'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
                        'score': 0,
                        'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
                        'related': hanzi_words.get(w.word, []) })
+    db.session.commit()
     # words = json.dumps(words)
     return render_template(
         'words.html', user = current_user, book=book, streak=current_user.streak, words=words,
