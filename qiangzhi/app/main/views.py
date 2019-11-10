@@ -17,15 +17,20 @@ from sqlalchemy.sql import func
 def index():
     users = []
     for u in User.query.all():
-        s = Score.query.filter_by(study_y4md=u.session_date).first()
-        users.append({ 
+        s = Score.query.filter_by(user_id=u.id, study_y4md=u.session_date).first()
+ 
+        st = { 
             'name': u.name, 'tot_xpoints': u.tot_xpoints,
             'streak': u.streak, 'session_date': u.session_date,
             'num_pass': 0 if not s else s.num_pass,
             'num_fail': 0 if not s else s.num_fail,
             'num_thumb_up': 0 if not s else s.num_thumb_up,
             'cur_xpoints': 0 if not s else s.xpoints,
-        })
+        }
+        c = Word.query.filter_by(user_id=u.id).filter(Word.streak >= 3).count()
+        st['3streak'] = c
+        users.append(st)
+
     users = sorted(users, key=lambda x: (x['session_date'], x['cur_xpoints']), reverse=True)
     return render_template("index.html", users=users)
 

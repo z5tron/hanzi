@@ -18,6 +18,7 @@
         <th>XP</th>
         <th>Streak</th>
         <th>Total XP</th>
+        <th>Words (streak>=3)</th>
       </tr>
     </thead>
 
@@ -36,6 +37,7 @@
         <td>{{ u.cur_xpoints }}</td>
         <td>{{ u.streak }}</td>
         <td>{{ u.tot_xpoints }}</td>
+        <td>{{ u['3streak'] }}</td>
       </tr>
     {% endfor %}
     </tbody>
