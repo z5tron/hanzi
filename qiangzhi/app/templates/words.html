@@ -126,6 +126,16 @@ var app = new Vue({
           self.tot_xpoints += n;
           w.cur_xpoints += n;
           console.log(this.cur_xpoints);
+	  w.tot_xpoints += n;
+          w.cur_xpoints += n;
+          if (n > 0) {
+	      w.streak += 1;
+	      w.num_pass += 1;
+	  } else if (n < 0) {
+	      w.streak = 0;
+	      w.num_fail += 1;
+	  }
+	  w.study_date = moment().format();
 	},
 	error: function(data) { console.log("ERROR", data); },
       });

@@ -12,35 +12,22 @@ from ..models import User, Progress, Word, Score
 
 from sqlalchemy.sql import func
 
-def get_user_progress(userid, tz_offset=240):
-    loc_t = datetime.utcnow() - timedelta(minutes=tz_offset)
-    utc_cutoff = datetime.utcnow() - timedelta(hours=loc_t.hour, 
-                                               minutes=loc_t.minute)
-    words = {}
-    total_points, today_points = 0, 0
-    for w in Progress.query.filter_by(user_id=userid).order_by(Progress.study_date.desc()).all():
-        if w.word_id not in words:
-            words[w.word_id] = {
-                'word': w.word, 'book': w.book, 'chapter': w.chapter,
-                'trial': w.trial,
-                'study_date': w.study_date.strftime("%Y-%m-%dT%H:%M:%S.%f%z"),
-                'word_id': w.word_id, 'total_points': w.total_points,
-                'score': 0, 'user_id': w.user_id}
-            total_points += w.total_points if w.total_points < 5000 else 0
-        if w.study_date > utc_cutoff:
-            words[w.word_id]['score'] += w.points
-            today_points += w.points
-    return { 'total_points': total_points, 'today_points': today_points}
-
-
-@main.route('/secret')
-@login_required
-def secret():
-    return "Only authenticated users are allowed!"
 
 @main.route('/')
 def index():
-    return render_template("index.html")
+    users = []
+    for u in User.query.all():
+        s = Score.query.filter_by(study_y4md=u.session_date).first()
+        users.append({ 
+            'name': u.name, 'tot_xpoints': u.tot_xpoints,
+            'streak': u.streak, 'session_date': u.session_date,
+            'num_pass': 0 if not s else s.num_pass,
+            'num_fail': 0 if not s else s.num_fail,
+            'num_thumb_up': 0 if not s else s.num_thumb_up,
+            'cur_xpoints': 0 if not s else s.xpoints,
+        })
+    users = sorted(users, key=lambda x: (x['session_date'], x['cur_xpoints']), reverse=True)
+    return render_template("index.html", users=users)
 
 @main.route('/import-book')
 @login_required
