@@ -13,6 +13,8 @@ from ..models import User, Progress, Word, Score
 from sqlalchemy.sql import func
 
 
+LOC_TZ_SHIFT=-5
+
 @main.route('/')
 def index():
     users = []
@@ -88,7 +90,9 @@ def user():
     print(score.id, score.num_pass)
     user.cur_xpoints = 0 if not score else score.xpoints
     num_pass_daily = 0 if not score else score.num_pass
-    user.session_date = cur_y4md
+    cur_loc_t = cur_t + timedelta(hours=LOC_TZ_SHIFT)
+    cur_loc_y4md = cur_loc_t.year*10000 + cur_loc_t.month*100 + cur_loc_t.day
+    user.session_date = cur_loc_y4md
     db.session.add(user)
     db.session.commit()
     session['num_pass_daily'] = num_pass_daily
@@ -106,14 +110,16 @@ def practice():
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
         y4md = w.study_date.year*10000+w.study_date.month*100+w.study_date.day
-        if y4md != current_user.session_date:
+        loc_t = w.study_date + timedelta(hours=LOC_TZ_SHIFT)
+        loc_y4md = loc_t.year*10000 + loc_t.month*100 + loc_t.day
+        if loc_y4md != current_user.session_date:
             w.cur_xpoints = 0
             db.session.add(w)
             # db.session.commit()
 
         # what can be skipped ? streak > 5
         # recent (within 30 minutes) studied and passed
-        if w.study_date > datetime.utcnow() - timedelta(minutes=30) and w.cur_xpoints > 0: continue
+        if w.study_date > datetime.utcnow() - timedelta(hours=2) and w.cur_xpoints > 0: continue
         # print(w.word, w.cur_xpoints, w.tot_xpoints, w.study_date, end="")
 
         words.append({ 'id': w.id, 'word': w.word,
@@ -174,6 +180,8 @@ def save_words():
             wbi.streak = 0
 
         db.session.add(wbi)
+    loc_t = cur_t + timedelta(hours=LOC_TZ_SHIFT)
+    loc_y4md = loc_t.year*10000+loc_t.month*100+loc_t.day
     cur_y4md = cur_t.year*10000+cur_t.month*100+cur_t.day
     score = Score.query.filter_by(user_id=current_user.id, study_y4md=current_user.session_date).first()
     if not score:
