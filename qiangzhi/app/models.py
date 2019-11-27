@@ -23,6 +23,7 @@ class User(UserMixin, db.Model):
     days = db.Column(db.Integer, default=0)
     cur_xpoints = db.Column(db.Integer, default=0)
     session_date = db.Column(db.Integer, default=19700101)
+    timezone_offset = db.Column(db.Integer, default=0)
 
     @property
     def password(self):

@@ -14,3 +14,10 @@
   <p>New user? <a href="{{ url_for('auth.register') }}">Click here to register</a>.</p>
 </div>
 {% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+$("#timezone_offset").val((new Date()).getTimezoneOffset());
+</script>
+{% endblock %}

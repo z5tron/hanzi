@@ -13,8 +13,6 @@ from ..models import User, Progress, Word, Score
 from sqlalchemy.sql import func
 
 
-LOC_TZ_SHIFT=-5
-
 @main.route('/')
 def index():
     users = []
@@ -90,7 +88,7 @@ def user():
     print(score.id, score.num_pass)
     user.cur_xpoints = 0 if not score else score.xpoints
     num_pass_daily = 0 if not score else score.num_pass
-    cur_loc_t = cur_t + timedelta(hours=LOC_TZ_SHIFT)
+    cur_loc_t = cur_t - timedelta(minutes=user.timezone_offset)
     cur_loc_y4md = cur_loc_t.year*10000 + cur_loc_t.month*100 + cur_loc_t.day
     user.session_date = cur_loc_y4md
     db.session.add(user)
@@ -110,7 +108,7 @@ def practice():
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
         y4md = w.study_date.year*10000+w.study_date.month*100+w.study_date.day
-        loc_t = w.study_date + timedelta(hours=LOC_TZ_SHIFT)
+        loc_t = w.study_date
         loc_y4md = loc_t.year*10000 + loc_t.month*100 + loc_t.day
         if loc_y4md != current_user.session_date:
             w.cur_xpoints = 0
@@ -180,7 +178,7 @@ def save_words():
             wbi.streak = 0
 
         db.session.add(wbi)
-    loc_t = cur_t + timedelta(hours=LOC_TZ_SHIFT)
+    loc_t = cur_t - timedelta(minutes=current_user.timezone_offset)
     loc_y4md = loc_t.year*10000+loc_t.month*100+loc_t.day
     cur_y4md = cur_t.year*10000+cur_t.month*100+cur_t.day
     score = Score.query.filter_by(user_id=current_user.id, study_y4md=current_user.session_date).first()

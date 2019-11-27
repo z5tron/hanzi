@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
 from wtforms.validators import DataRequired, Length, Email, Regexp, EqualTo
 from wtforms import ValidationError
 from ..models import User
@@ -10,6 +10,7 @@ class LoginForm(FlaskForm):
                                              Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Keep me logged in')
+    timezone_offset = HiddenField('Timezone Offset');
     submit = SubmitField('Log In')
 
     
