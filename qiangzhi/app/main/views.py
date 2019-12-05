@@ -107,9 +107,7 @@ def practice():
     for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.tot_xpoints, Word.study_date, Word.chapter).limit(200):
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
-        y4md = w.study_date.year*10000+w.study_date.month*100+w.study_date.day
-        loc_t = w.study_date
-        loc_y4md = loc_t.year*10000 + loc_t.month*100 + loc_t.day
+        loc_y4md = int((w.study_date - timedelta(minutes=current_user.timezone_offset)).strftime("%Y%m%d"))
         if loc_y4md != current_user.session_date:
             w.cur_xpoints = 0
             db.session.add(w)
@@ -124,7 +122,7 @@ def practice():
                        'book': w.book, 'chapter': w.chapter,
                        'study_date': pytz.utc.localize(w.study_date).strftime("%Y-%m-%dT%H:%M:%S%z"),
                        'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
-                       'score': 0,
+                       'score': 0, 'timezone_offset': current_user.timezone_offset,
                        'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
                        'related': hanzi_words.get(w.word, []) })
     db.session.commit()
@@ -160,7 +158,8 @@ def save_words():
     db.session.add(p)
     cur_t = datetime.utcnow()
     for wbi in Word.query.filter_by(word=w['word']).filter_by(user_id=current_user.id):
-        if cur_t.strftime("%Y%m%d") == wbi.study_date.strftime("%Y%m%d"):
+        session_date = int((wbi.study_date - timedelta(minutes=w.get('timezone_offset', 0))).strftime("%Y%m%d"))
+        if session_date == current_user.session_date:
             wbi.cur_xpoints += data['xpoints']
         else:
             wbi.cur_xpoints = data['xpoints']

@@ -75,6 +75,8 @@ var app = new Vue({
     cur_xpoints: {{ user.cur_xpoints or 0 }},
     tot_xpoints: {{ user.tot_xpoints or 0 }},
     num_pass_daily: {{ num_pass_daily or 0 }},
+    session_date : {{ user.session_date }},
+    timezone_offset : 0,
     streak: {{ streak }},
     tot_days: 0,
     first_day: 99991231,
@@ -116,11 +118,12 @@ var app = new Vue({
       if (n > 0) {
 	  self.cur_page_pass += 1;
       }
+      self.timezone_offset = (new Date()).getTimezoneOffset();
       $.ajax({
 	type: 'POST',
 	url: './save',
 	contentType:"application/json",
-	data: JSON.stringify({ word: w, xpoints: n, thumbs_up: self.cur_thumbs_up}),
+	data: JSON.stringify({ word: w, xpoints: n, thumbs_up: self.cur_thumbs_up }),
 	dataType: 'json',
 	success: function(data) {
           console.log("saved!", data);
@@ -174,6 +177,7 @@ var app = new Vue({
   mounted: function() {
     // _.forEach(this.words, function(w) { w.study_date = new Date(w.study_date); });
     console.log("passed ?");
+    this.timezone_offset = (new Date()).getTimezoneOffset();
   },
 })
 </script>
