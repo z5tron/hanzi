@@ -187,6 +187,7 @@ def save_words():
         db.session.commit()
     score.xpoints += data['xpoints']
     score.study_date = datetime.utcnow()
+    score.num_thumb_up += data['thumbs_up']
     if data['xpoints'] > 0: score.num_pass += 1
     elif data['xpoints'] < 0: score.num_fail += 1
     db.session.add(score)

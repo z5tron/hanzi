@@ -118,6 +118,7 @@ var app = new Vue({
       if (n > 0) {
 	  self.cur_page_pass += 1;
       }
+      w.cur_xpoints += n;
       self.timezone_offset = (new Date()).getTimezoneOffset();
       $.ajax({
 	type: 'POST',
@@ -129,7 +130,6 @@ var app = new Vue({
           console.log("saved!", data);
           self.cur_xpoints += n;
           self.tot_xpoints += n;
-          w.cur_xpoints += n;
           console.log(this.cur_xpoints);
 	  w.tot_xpoints += n;
           w.cur_xpoints += n;
