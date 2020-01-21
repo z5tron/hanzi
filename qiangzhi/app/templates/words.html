@@ -44,7 +44,7 @@
       </ul>
     </div>
   <div class="row">
-    <div class="col-xs-12 col-sm-6 col-md-4" v-for="w in active_words">
+    <div class="col-xs-12 col-md-4" v-for="w in active_words">
       <div :class="['word-box', 'border', 'border-' + word_status(w)]">
 	<div class="well"><p :class="['word-cell', 'text-' + word_status(w)]">[[ w.word ]]</p></div>
 	<p class="cizu"><template v-for="ci in w.related"><span class="cizu">[[ ci ]]</span></template>
