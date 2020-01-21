@@ -9,9 +9,10 @@ def print_3col(inpname):
     words=open(inpname, 'r').read()
     words = re.sub(r'\s', '', words)
     root, ext = os.path.splitext(inpname)
-
-    with open('{}.tex'.format(root), 'w') as f:
-        f.write(tmpl.render(title="title", words=words))
+    ftex = '{}-col.tex'.format(root)
+    with open(ftex, 'w') as f:
+        f.write(tmpl.render(title=root, words=words))
+    return ftex
 
 def print_row(inpname):
     tmpl = Template(open('qiangzhi/app/templates/print_words_row.tex', 'r').read())
@@ -28,21 +29,24 @@ def print_row(inpname):
         lines.append(words[i:i+ncol])
 
     root, ext = os.path.splitext(inpname)
-    with open('{}.tex'.format(root), 'w') as f:
+    ftex = '{}-row.tex'.format(root)
+    with open(ftex, 'w') as f:
         f.write(tmpl.render(title=root, lines=lines))
-    
+    return ftex
+
 def main():
-    inpname = sys.argv[2]
+    mod, inpname = sys.argv[1:3]
     if not os.path.exists(inpname):
         raise RuntimeError("can not find file: {}".format(inpname))
-    if '-col' == sys.argv[1]:
-        print_col(inpname)
-    elif '-row' == sys.argv[1]:
-        print_row(inpname)
+    ftex = None
+    if '-col' == mod:
+        ftex = print_3col(inpname)
+    elif '-row' == mod:
+        ftex = print_row(inpname)
     else:
         raise RuntimeError("invalid format {}".format(sys.argv[1]))
 
-    root, ext = os.path.splitext(inpname)
+    root, ext = os.path.splitext(ftex)
     for i in range(2):
         subprocess.check_call('xelatex {}'.format(root), shell=True)
 
