@@ -12,6 +12,8 @@ from ..models import User, Progress, Word, Score
 
 from sqlalchemy.sql import func
 
+# the next practice date will be days later
+NEXT_STUDY = [1,1,1,1,2,2,3,3,5,5,10,10,30,90,180,365,365,365]
 
 @main.route('/')
 def index():

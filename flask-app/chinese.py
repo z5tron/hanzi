@@ -19,7 +19,7 @@ from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = \
-    "postgresql://alex:abc123@localhost/hanzi"
+    # "postgresql://alex:abc123@localhost/hanzi"
     # "mysql+pymysql://alex:abc123@localhost/hanzi?charset=utf8"
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

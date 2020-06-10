@@ -28,6 +28,13 @@ psql=# create database <dbname>;
 psql=# alter user <username> with encrypted password '<password>';
 psql=# grant all privileges on database <dbname> to <username> ;
 
+## MySQL
+
+- `sudo apt install mysql-server libmysql-dev`
+- `pip install -r requirement.txt`
+- `cd; mysqldump -u z5tron -h z5tron.mysql.pythonanywhere-services.com 'z5tron$hanzi'  > db-hanzi-backup-2020-0609.sql`
+
+
 ## Testing
 
 export FLASK_APP=qiangzhi.py

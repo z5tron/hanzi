@@ -12,7 +12,8 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite3')
+    # SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite3')
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://alex:abc123@localhost/hanzi"
 
 class TestingConfig(Config):
     TESTING = True
