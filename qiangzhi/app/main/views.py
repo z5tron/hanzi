@@ -174,11 +174,20 @@ def save_words():
         if data['xpoints'] > 0:
             wbi.num_pass += 1
             wbi.streak += 1
+            wbi.istep += 1
         elif data['xpoints'] < 0:
             wbi.num_fail += 1
             wbi.streak = 0
-
+            wbi.istep -=2
+        wbi.istep = min(max(0, wbi.istep), len(NEXT_STUDY)-1)
+        wbi.next_study = cur_t + timedelta(days=NEXT_STUDY[wbi.istep])
         db.session.add(wbi)
+
+        # updates for the return
+        w['study_date'] = cur_t
+        w['next_study'] = wbi.next_study
+        w['xpoints'] = wbi.tot_xpoints
+        
     loc_t = cur_t - timedelta(minutes=current_user.timezone_offset)
     loc_y4md = loc_t.year*10000+loc_t.month*100+loc_t.day
     cur_y4md = cur_t.year*10000+cur_t.month*100+cur_t.day

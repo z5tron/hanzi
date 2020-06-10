@@ -73,6 +73,7 @@ class Word(db.Model):
     num_fail = db.Column(db.Integer, default=0)
     streak = db.Column(db.Integer, default=0)
     istep = db.Column(db.Integer, default=0)
+    next_study = db.Column(db.DateTime, default=datetime(2000, 1, 1))
 
 class Progress(db.Model):
     __tablename__ = "progress"
