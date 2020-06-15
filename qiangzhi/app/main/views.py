@@ -15,6 +15,7 @@ from sqlalchemy.sql import func
 # the next practice date will be days later
 NEXT_STUDY = [1,1,1,1,2,2,3,3,5,5,10,10,30,90,180,365,365,365]
 
+
 @main.route('/')
 def index():
     users = []
@@ -109,28 +110,42 @@ def practice():
     for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.tot_xpoints, Word.study_date, Word.chapter).limit(200):
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
-        loc_y4md = int((w.study_date - timedelta(minutes=current_user.timezone_offset)).strftime("%Y%m%d"))
-        if loc_y4md != current_user.session_date:
-            w.cur_xpoints = 0
-            db.session.add(w)
-            # db.session.commit()
 
         # what can be skipped ? streak > 5
         # recent (within 30 minutes) studied and passed
         if w.study_date > datetime.utcnow() - timedelta(hours=2) and w.cur_xpoints > 0: continue
-        # print(w.word, w.cur_xpoints, w.tot_xpoints, w.study_date, end="")
 
         words.append({ 'id': w.id, 'word': w.word,
                        'book': w.book, 'chapter': w.chapter,
-                       'study_date': pytz.utc.localize(w.study_date).strftime("%Y-%m-%dT%H:%M:%S%z"),
+                       'study_date': w.study_date.timestamp(),
+                       'next_study': w.next_study.timestamp(),
                        'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
                        'score': 0, 'timezone_offset': current_user.timezone_offset,
                        'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
                        'related': hanzi_words.get(w.word, []) })
-    db.session.commit()
     # words = json.dumps(words)
     return render_template(
-        'words.html', user = current_user, book=book, streak=current_user.streak, words=words,
+        'practice.html', user = current_user, book=book, streak=current_user.streak, words=words,
+        num_pass_daily = num_pass_daily)
+
+@main.route('/review')
+@login_required
+def review():
+    num_pass_daily = session.get("num_pass_daily", 0)
+    words = []
+    t0 = datetime.utcnow() - timedelta(days=7, hours=2)
+    for w in Word.query.filter_by(user_id=current_user.id).filter(Word.cur_xpoints<0).filter(Word.study_date >= t0).order_by(Word.tot_xpoints, Word.study_date, Word.chapter).limit(200):
+        words.append({ 'id': w.id, 'word': w.word,
+                       'book': w.book, 'chapter': w.chapter,
+                       'study_date': w.study_date.timestamp(),
+                       'next_study': w.next_study.timestamp(),
+                       'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
+                       'score': 0, 'timezone_offset': current_user.timezone_offset,
+                       'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
+                       'related': hanzi_words.get(w.word, []) })
+    # words = json.dumps(words)
+    return render_template(
+        'review.html', user = current_user, streak=current_user.streak, words=words,
         num_pass_daily = num_pass_daily)
 
 # @main.route('/words/<book>')
@@ -158,9 +173,9 @@ def save_words():
                  study_date = datetime.utcnow(),
                  xpoints = data['xpoints'])
     db.session.add(p)
-    cur_t = datetime.utcnow()
+    cur_t = datetime.now()
     for wbi in Word.query.filter_by(word=w['word']).filter_by(user_id=current_user.id):
-        session_date = int((wbi.study_date - timedelta(minutes=w.get('timezone_offset', 0))).strftime("%Y%m%d"))
+        session_date = int(wbi.study_date.strftime("%Y%m%d"))
         if session_date == current_user.session_date:
             wbi.cur_xpoints += data['xpoints']
         else:
@@ -184,13 +199,10 @@ def save_words():
         db.session.add(wbi)
 
         # updates for the return
-        w['study_date'] = cur_t
-        w['next_study'] = wbi.next_study
+        w['study_date'] = cur_t.timestamp()
+        w['next_study'] = wbi.next_study.timestamp()
         w['xpoints'] = wbi.tot_xpoints
         
-    loc_t = cur_t - timedelta(minutes=current_user.timezone_offset)
-    loc_y4md = loc_t.year*10000+loc_t.month*100+loc_t.day
-    cur_y4md = cur_t.year*10000+cur_t.month*100+cur_t.day
     score = Score.query.filter_by(user_id=current_user.id, study_y4md=current_user.session_date).first()
     if not score:
         score = Score(user_id=current_user.id, study_y4md=current_user.session_date)

@@ -95,7 +95,7 @@ class Progress(db.Model):
             'word': self.word,
             'book': self.book,
             'chapter': self.chapter,
-            'study_date': pytz.utc.localize(self.study_date).strftime("%Y-%m-%d %H:%M:%S.%f%z"),
+            'study_date': self.study_date.timestamp(),
             'xpoints': self.xpoints,
         }, sort_keys=True)
     

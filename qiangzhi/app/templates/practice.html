@@ -49,7 +49,8 @@
 	<div class="well"><p :class="['word-cell', 'text-' + word_status(w)]">[[ w.word ]]</p></div>
 	<p class="cizu"><template v-for="ci in w.related"><span class="cizu">[[ ci ]]</span></template>
         </p> 
-	<p class="word-info">XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.tot_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>. Study: <span>[[ from_now(w) ]]</span></p>
+	<p class="word-info">XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.tot_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>.</br> Study: <span>[[ from_now(w) ]]</span>
+	</br> Next Study: <span>[[ next_study(w) ]]</span></p>
 	<p>
 	  <button class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 2)"><span class="glyphicon glyphicon-thumbs-up"></span><span class="glyphicon glyphicon-thumbs-up"></span></button>
 	  <button href="#" class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 1)"><span class="glyphicon glyphicon-thumbs-up"></span></button>
@@ -130,7 +131,6 @@ var app = new Vue({
           console.log("saved!", data);
           self.cur_xpoints += n;
           self.tot_xpoints += n;
-          console.log(this.cur_xpoints);
 	  w.tot_xpoints += n;
           w.cur_xpoints += n;
           if (n > 0) {
@@ -140,7 +140,8 @@ var app = new Vue({
 	      w.streak = 0;
 	      w.num_fail += 1;
 	  }
-	  w.study_date = moment().format();
+	 w.study_date = data.study_date;
+	 w.next_study = data.next_study;
 	},
 	error: function(data) { console.log("ERROR", data); },
       });
@@ -169,7 +170,10 @@ var app = new Vue({
       else return 'pass';
     },
     from_now: function(w) {
-      return moment(w.study_date, "YYYY-MM-DD h:mm:ssZZ").fromNow();
+      return moment.unix(w.study_date).utc().fromNow();
+    },
+    next_study: function(w) {
+      return moment.unix(w.next_study).fromNow();
     },
     saveWords: function(words) {
     }

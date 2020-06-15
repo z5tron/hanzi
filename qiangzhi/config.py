@@ -46,7 +46,7 @@ class PythonAnywhereConfig(ProductionConfig):
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
-    'production': ProductionConfig,
+    #'production': ProductionConfig,
     'default': DevelopmentConfig,
     'heroku': HerokuConfig,
     'mysql': MySQLConfig,
