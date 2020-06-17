@@ -31,7 +31,8 @@ def index():
             'num_thumb_up': 0 if not s else s.num_thumb_up,
             'cur_xpoints': 0 if not s else s.xpoints,
         }
-        c = Word.query.filter_by(user_id=u.id).filter(Word.streak >= 3).filter(func.length(Word.word) < 4).count()
+        # c = Word.query.filter_by(user_id=u.id).filter(Word.streak >= 3).filter(func.length(Word.word) < 4).count()
+        c = db.session.query(Word.word.distinct()).filter_by(user_id=u.id).filter(Word.streak >= 3).filter(func.length(Word.word) < 4).count()
         st['3streak'] = c
         t0 = datetime.utcnow() + timedelta(hours=4)
         st['num_due'] = Word.query.filter_by(user_id=u.id).filter(Word.next_study < t0).count()
