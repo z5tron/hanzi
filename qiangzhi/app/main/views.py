@@ -30,8 +30,11 @@ def index():
             'num_thumb_up': 0 if not s else s.num_thumb_up,
             'cur_xpoints': 0 if not s else s.xpoints,
         }
-        c = Word.query.filter_by(user_id=u.id).filter(Word.streak >= 3).count()
+        c = Word.query.filter_by(user_id=u.id).filter(Word.streak >= 3).filter(func.length(Word.word) < 4).count()
         st['3streak'] = c
+        t0 = datetime.utcnow() + timedelta(hours=4)
+        st['num_due'] = Word.query.filter_by(user_id=u.id).filter(Word.next_study < t0).count()
+        
         users.append(st)
 
     users = sorted(users, key=lambda x: (x['session_date'], x['cur_xpoints']), reverse=True)
@@ -88,7 +91,7 @@ def user():
     cur_t = datetime.utcnow()
     cur_y4md = cur_t.year*10000+cur_t.month*100+cur_t.day
     score = Score.query.filter_by(user_id=user.id, study_y4md=cur_y4md).first()
-    print(score.id, score.num_pass)
+    # print(score.id, score.num_pass)
     user.cur_xpoints = 0 if not score else score.xpoints
     num_pass_daily = 0 if not score else score.num_pass
     cur_loc_t = cur_t - timedelta(minutes=user.timezone_offset)
@@ -96,8 +99,10 @@ def user():
     user.session_date = cur_loc_y4md
     db.session.add(user)
     db.session.commit()
+    t0 = cur_t + timedelta(hours=4)
+    num_due = Word.query.filter_by(user_id=user.id).filter(Word.next_study < t0).count()
     session['num_pass_daily'] = num_pass_daily
-    return render_template('user.html', user=user, books=sorted(books))
+    return render_template('user.html', user=user, books=sorted(books), num_due = num_due)
 
 
 @main.route('/practice')
