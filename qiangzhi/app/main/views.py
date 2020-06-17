@@ -14,7 +14,7 @@ from sqlalchemy import desc
 from sqlalchemy.sql import func
 
 # the next practice date will be days later
-NEXT_STUDY = [1,1,1,1,2,2,3,3,5,5,10,10,30,90,180,365,365,365]
+NEXT_STUDY = [1,1,1,1,2,2,3,3,5,5,7,10,30,90,180,365,365,365]
 
 
 @main.route('/')
@@ -112,23 +112,31 @@ def user():
 def practice():
     book = request.args.get('book')
     num_pass_daily = session.get("num_pass_daily", 0)
-    words = []
+    words = {}
     t0 = datetime.utcnow() + timedelta(hours=4)
     for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.next_study < t0).order_by(desc(Word.next_study), Word.tot_xpoints).limit(300):
+        # skip the know words
+        if w.word in words: continue
+        # reset the points
         if w.study_date < datetime.utcnow() - timedelta(hours=24):
             w.cur_xpoints = 0
-        words.append({ 'id': w.id, 'word': w.word,
-                       'book': w.book, 'chapter': w.chapter,
-                       'study_date': w.study_date.timestamp(),
-                       'next_study': w.next_study.timestamp(),
-                       'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
-                       'score': 0, 'timezone_offset': current_user.timezone_offset,
-                       'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
-                       'related': hanzi_words.get(w.word, []) })
+        words[w.word] = { 'id': w.id, 'word': w.word,
+                          'book': w.book, 'chapter': w.chapter,
+                          'study_date': w.study_date.timestamp(),
+                          'next_study': w.next_study.timestamp(),
+                          'cur_xpoints': w.cur_xpoints,
+                          'tot_xpoints': w.tot_xpoints,
+                          'score': 0,
+                          'timezone_offset': current_user.timezone_offset,
+                          'num_pass': w.num_pass, 'num_fail': w.num_fail,
+                          'streak': w.streak,
+                          'istep': w.istep + 1,
+                          'related': hanzi_words.get(w.word, []) }
     # words = json.dumps(words)
     return render_template(
-        'practice.html', user = current_user, book=book, streak=current_user.streak, words=words,
-        num_pass_daily = num_pass_daily)
+        'practice.html', user = current_user, book=book,
+        streak=current_user.streak, words=list(words.values()),
+        num_pass_daily = num_pass_daily, tot_steps = len(NEXT_STUDY))
 
 @main.route('/review')
 @login_required
