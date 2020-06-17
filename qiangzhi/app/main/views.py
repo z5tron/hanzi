@@ -113,7 +113,7 @@ def practice():
     num_pass_daily = session.get("num_pass_daily", 0)
     words = []
     t0 = datetime.utcnow() + timedelta(hours=4)
-    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.next_study < t0).order_by(desc(Word.next_study)).limit(300):
+    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.next_study < t0).order_by(desc(Word.next_study), Word.tot_xpoints).limit(300):
         if w.study_date < datetime.utcnow() - timedelta(hours=24):
             w.cur_xpoints = 0
         words.append({ 'id': w.id, 'word': w.word,
