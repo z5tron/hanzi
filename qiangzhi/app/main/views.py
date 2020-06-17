@@ -10,6 +10,7 @@ from .. import db, hanzi_words
 from flask_login import login_required, current_user
 from ..models import User, Progress, Word, Score
 
+from sqlalchemy import desc
 from sqlalchemy.sql import func
 
 # the next practice date will be days later
@@ -112,7 +113,7 @@ def practice():
     num_pass_daily = session.get("num_pass_daily", 0)
     words = []
     t0 = datetime.utcnow() + timedelta(hours=4)
-    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.next_study < t0).order_by(Word.next_study, Word.tot_xpoints, Word.study_date).limit(300):
+    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.next_study < t0).order_by(desc(Word.next_study)).limit(300):
         if w.study_date < datetime.utcnow() - timedelta(hours=24):
             w.cur_xpoints = 0
         words.append({ 'id': w.id, 'word': w.word,
