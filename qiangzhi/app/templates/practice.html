@@ -44,18 +44,19 @@
       </ul>
     </div>
   <div class="row">
-    <div class="col-xs-12 col-md-4" v-for="w in active_words">
-      <div :class="['word-box', 'border', 'border-' + word_status(w)]">
-	<div class="well"><p :class="['word-cell', 'text-' + word_status(w)]">[[ w.word ]]</p></div>
-	<p class="cizu"><template v-for="ci in w.related"><span class="cizu">[[ ci ]]</span></template>
-        </p> 
-	<p class="word-info">XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.tot_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>.</br> Study: <span>[[ from_now(w) ]]</span>
-	</br> Next Study: <span>[[ next_study(w) ]]</span></p>
-	<p>
-	  <button class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 2)"><span class="glyphicon glyphicon-thumbs-up"></span><span class="glyphicon glyphicon-thumbs-up"></span></button>
-	  <button href="#" class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 1)"><span class="glyphicon glyphicon-thumbs-up"></span></button>
-	  <button href="#" class="submit-ans btn btn-danger" role="button" v-on:click="adj_score(w, -1)"><span class="glyphicon glyphicon-thumbs-down"></span></button>
-	</p>
+      <div class="col-xs-12 col-md-4" v-for="w,i in active_words">
+	  <div :class="['word-box', 'border', 'border-' + word_status(w)]">
+	      <div class="well"><p :class="['word-cell', 'text-' + word_status(w)]">[[ w.word ]]</p></div>
+	      <div class="collapse multi-collapse" :id="'cizu-' + i"><div class="card card-body"><p class="cizu"><template v-for="ci in w.related"><span class="cizu">[[ ci ]]</span></template>
+              </p></div> </div>
+	      <p class="word-info"><button href="#" class="btn" data-toggle="collapse" :data-target="'#cizu-' + i" role="button" aria-expanded="false" :aria-controls="'cizu-' + i">词组</button> XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.tot_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>.</br> Study: <span>[[ from_now(w) ]]</span>
+	      </br> Next Study: <span>[[ next_study(w) ]]</span></p>
+	      <p>
+		  <button class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 2)"><span class="glyphicon glyphicon-thumbs-up"></span><span class="glyphicon glyphicon-thumbs-up"></span></button>
+		  <button href="#" class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 1)"><span class="glyphicon glyphicon-thumbs-up"></span></button>
+		  <button href="#" class="submit-ans btn btn-danger" role="button" v-on:click="adj_score(w, -1)"><span class="glyphicon glyphicon-thumbs-down"></span></button>
+		  
+	      </p>
       </div>
     </div>
   </div>

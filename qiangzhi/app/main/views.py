@@ -106,13 +106,8 @@ def practice():
     book = request.args.get('book')
     num_pass_daily = session.get("num_pass_daily", 0)
     words = []
-    t0 = datetime.utcnow() - timedelta(minutes=10)
-    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).order_by(Word.next_study, Word.tot_xpoints, Word.study_date, Word.chapter).limit(200):
-        # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
-        #    score = w.xpoints
-
-        # what can be skipped ? streak > 5
-        # recent (within 30 minutes) studied and passed
+    t0 = datetime.utcnow() + timedelta(hours=4)
+    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.next_study < t0).order_by(Word.next_study, Word.tot_xpoints, Word.study_date).limit(300):
         if w.study_date < datetime.utcnow() - timedelta(hours=24):
             w.cur_xpoints = 0
         words.append({ 'id': w.id, 'word': w.word,
@@ -134,7 +129,7 @@ def review():
     num_pass_daily = session.get("num_pass_daily", 0)
     words = []
     t0 = datetime.utcnow() - timedelta(days=7, hours=2)
-    for w in Word.query.filter_by(user_id=current_user.id).filter(Word.cur_xpoints<0).filter(Word.study_date >= t0).order_by(Word.tot_xpoints, Word.study_date, Word.chapter).limit(200):
+    for w in Word.query.filter_by(user_id=current_user.id).filter(Word.cur_xpoints<0).filter(Word.study_date >= t0).order_by(Word.study_date, Word.tot_xpoints, Word.chapter).limit(200):
         words.append({ 'id': w.id, 'word': w.word,
                        'book': w.book, 'chapter': w.chapter,
                        'study_date': w.study_date.timestamp(),
@@ -189,13 +184,17 @@ def save_words():
         if data['xpoints'] > 0:
             wbi.num_pass += 1
             wbi.streak += 1
-            wbi.istep += 1
+            wbi.istep += data['xpoints']
         elif data['xpoints'] < 0:
             wbi.num_fail += 1
             wbi.streak = 0
             wbi.istep -=2
         wbi.istep = min(max(0, wbi.istep), len(NEXT_STUDY)-1)
-        wbi.next_study = cur_t + timedelta(days=NEXT_STUDY[wbi.istep])
+        if data['xpoints'] < 0:
+            wbi.next_study = cur_t + timedelta(days=1)
+        else:
+            wbi.next_study = cur_t + timedelta(days=NEXT_STUDY[wbi.istep])
+            
         db.session.add(wbi)
 
         # updates for the return
