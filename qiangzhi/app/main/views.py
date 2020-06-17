@@ -107,14 +107,14 @@ def practice():
     num_pass_daily = session.get("num_pass_daily", 0)
     words = []
     t0 = datetime.utcnow() - timedelta(minutes=10)
-    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.streak <= 5).order_by(Word.tot_xpoints, Word.study_date, Word.chapter).limit(200):
+    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).order_by(Word.next_study, Word.tot_xpoints, Word.study_date, Word.chapter).limit(200):
         # if datetime.utcnow().strftime("%Y%m%d") == w.study_date.strftime("%Y%m%d"):
         #    score = w.xpoints
 
         # what can be skipped ? streak > 5
         # recent (within 30 minutes) studied and passed
-        if w.study_date > datetime.utcnow() - timedelta(hours=2) and w.cur_xpoints > 0: continue
-
+        if w.study_date < datetime.utcnow() - timedelta(hours=24):
+            w.cur_xpoints = 0
         words.append({ 'id': w.id, 'word': w.word,
                        'book': w.book, 'chapter': w.chapter,
                        'study_date': w.study_date.timestamp(),
