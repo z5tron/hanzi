@@ -13,12 +13,13 @@
 	<p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
 	<p>User ID: {{ user.id }}</p>
 	<p>Points: {{ user.tot_xpoints }}</p>
-	<p>Thumbs Up: {{ user.num_thumb_up }}</p>
+	<p>Thumbs Up: {{ user.num_thumb }}</p>
 	<p>Streak: {{ user.streak }}</p>
 	{% if num_due > 0 %}<p>Due: <span class="badge badge-danger"> {{ num_due }}</span></p>{% endif %}
 	<p>Today Points: {{ user.cur_xpoints }} ({{ user.session_date }})</p>
 	<p>Recent Study: {{ moment(user.last_study).format('LLL') }}</p>
 	<p><a href="/practice">Practice ({{ num_due }})</a></p>
+	<p><a href="/exam">Exam</a></p>
 	<p><a href="/review">Review</a></p>
 	<p><a href="/import-book">Import Book</a></p>
 	<ul>

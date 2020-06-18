@@ -144,6 +144,32 @@ def practice():
         streak=current_user.streak, words=list(words.values()),
         num_pass_daily = num_pass_daily, tot_steps = len(NEXT_STUDY))
 
+@main.route('/exam')
+@login_required
+def exam():
+    words = {}
+    for w in Word.query.filter_by(user_id=current_user.id).filter(Word.streak >= 3).order_by(Word.next_study, Word.tot_xpoints).all():
+        if w.word in words: continue
+        if w.study_date < datetime.utcnow() - timedelta(hours=24):
+            w.cur_xpoints = 0
+        words[w.word] = { 'id': w.id, 'word': w.word,
+                          'book': w.book, 'chapter': w.chapter,
+                          'study_date': w.study_date.timestamp(),
+                          'next_study': w.next_study.timestamp(),
+                          'cur_xpoints': w.cur_xpoints,
+                          'tot_xpoints': w.tot_xpoints,
+                          'score': 0,
+                          'num_pass': w.num_pass, 'num_fail': w.num_fail,
+                          'streak': w.streak,
+                          'istep': w.istep + 1,
+                          'related': hanzi_words.get(w.word, []) }
+        
+    num_pass_daily = session.get("num_pass_daily", 0)
+    return render_template(
+        'practice.html', user = current_user, book='',
+        streak=current_user.streak, words=list(words.values()),
+        num_pass_daily = num_pass_daily, tot_steps = len(NEXT_STUDY))
+
 @main.route('/review')
 @login_required
 def review():
