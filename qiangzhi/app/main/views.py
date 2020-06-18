@@ -14,7 +14,7 @@ from sqlalchemy import desc
 from sqlalchemy.sql import func
 
 # the next practice date will be days later
-NEXT_STUDY = [1,1,1,1,2,2,3,3,5,5,7,10,30,90,180,365,365,365]
+NEXT_STUDY = [1,1,1,1,2,2,3,3,5,5,7,10,30,45,60,60,90,180,365,365,365]
 
 
 @main.route('/')
@@ -107,14 +107,14 @@ def user():
     return render_template('user.html', user=user, books=sorted(books), num_due = num_due)
 
 
-@main.route('/practice')
-@login_required
-def practice():
-    book = request.args.get('book')
-    num_pass_daily = session.get("num_pass_daily", 0)
+def read_words(user_id, book = None, nlimit = 500):
     words = {}
     t0 = datetime.utcnow() + timedelta(hours=4)
-    for w in Word.query.filter_by(user_id=current_user.id).filter_by(book=book).filter(Word.next_study < t0).order_by(desc(Word.next_study), Word.tot_xpoints).limit(300):
+    wl = Word.query.filter_by(user_id=user_id).filter(Word.next_study < t0)
+    if book:
+        wl = wl.filter_by(book=book)
+    for w in wl.order_by(desc(Word.next_study), Word.tot_xpoints):
+        if len(words) >= nlimit: break
         # skip the know words
         if w.word in words: continue
         # reset the points
@@ -127,12 +127,18 @@ def practice():
                           'cur_xpoints': w.cur_xpoints,
                           'tot_xpoints': w.tot_xpoints,
                           'score': 0,
-                          'timezone_offset': current_user.timezone_offset,
                           'num_pass': w.num_pass, 'num_fail': w.num_fail,
                           'streak': w.streak,
                           'istep': w.istep + 1,
                           'related': hanzi_words.get(w.word, []) }
-    # words = json.dumps(words)
+    return words
+
+@main.route('/practice')
+@login_required
+def practice():
+    book = request.args.get('book', None)
+    num_pass_daily = session.get("num_pass_daily", 0)
+    words = read_words(current_user.id, book)
     return render_template(
         'practice.html', user = current_user, book=book,
         streak=current_user.streak, words=list(words.values()),
@@ -216,6 +222,7 @@ def save_words():
         w['study_date'] = cur_t.timestamp()
         w['next_study'] = wbi.next_study.timestamp()
         w['xpoints'] = wbi.tot_xpoints
+        w['istep'] = wbi.istep
         
     score = Score.query.filter_by(user_id=current_user.id, study_y4md=current_user.session_date).first()
     if not score:

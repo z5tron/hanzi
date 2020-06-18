@@ -50,14 +50,15 @@
 		<div class="well"><p :class="['word-cell', 'text-' + word_status(w)]">[[ w.word ]]</p></div>
 		<div class="collapse multi-collapse" :id="'cizu-' + i"><div class="card card-body"><p class="cizu"><template v-for="ci in w.related"><span class="cizu">[[ ci ]]</span></template>
 		</p></div> </div>
-		<p class="word-info"><button href="#" class="btn" data-toggle="collapse" :data-target="'#cizu-' + i" role="button" aria-expanded="false" :aria-controls="'cizu-' + i">词组</button> XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.tot_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>.</br> Study: <span>[[ from_now(w) ]]</span>
-		</br> Next Study ([[ w.istep ]]/[[ tot_steps ]]): <span>[[ next_study(w) ]]</span></p>
 		<p>
+		    <button href="#" class="submit-ans btn btn-info" data-toggle="collapse" :data-target="'#cizu-' + i" role="button" aria-expanded="false" :aria-controls="'cizu-' + i">词组</button>
 		    <button class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 2)"><span class="glyphicon glyphicon-thumbs-up"></span><span class="glyphicon glyphicon-thumbs-up"></span></button>
 		    <button href="#" class="submit-ans btn btn-primary" role="button" v-on:click="adj_score(w, 1)"><span class="glyphicon glyphicon-thumbs-up"></span></button>
 		    <button href="#" class="submit-ans btn btn-danger" role="button" v-on:click="adj_score(w, -1)"><span class="glyphicon glyphicon-thumbs-down"></span></button>
 		    
 		</p>
+		<p class="word-info">Book: <span>[[ w.book ]]: [[ w.chapter ]]</span></br> XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.tot_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>.</br> Study: <span>[[ from_now(w) ]]</span>
+		</br> Next Study ([[ w.istep ]]/[[ tot_steps ]]): <span>[[ next_study(w) ]]</span></p>
 	    </div>
 	</div>
     </div>
@@ -144,6 +145,7 @@
 			 w.streak = 0;
 			 w.num_fail += 1;
 		     }
+		     w.istep = data.istep;
 		     w.study_date = data.study_date;
 		     w.next_study = data.next_study;
 		 },
