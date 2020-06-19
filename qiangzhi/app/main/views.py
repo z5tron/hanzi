@@ -108,29 +108,31 @@ def user():
 
 
 def read_words(user_id, book = None, nlimit = 500):
-    words = {}
+    words, word_set = [], set([])
     t0 = datetime.utcnow() + timedelta(hours=4)
     wl = Word.query.filter_by(user_id=user_id).filter(Word.next_study < t0)
     if book:
         wl = wl.filter_by(book=book)
-    for w in wl.order_by(desc(Word.next_study), Word.tot_xpoints):
+    for w in wl.order_by(Word.tot_xpoints, desc(Word.next_study)):
         if len(words) >= nlimit: break
         # skip the know words
-        if w.word in words: continue
+        if w.word in word_set: continue
         # reset the points
         if w.study_date < datetime.utcnow() - timedelta(hours=24):
             w.cur_xpoints = 0
-        words[w.word] = { 'id': w.id, 'word': w.word,
-                          'book': w.book, 'chapter': w.chapter,
-                          'study_date': w.study_date.timestamp(),
-                          'next_study': w.next_study.timestamp(),
-                          'cur_xpoints': w.cur_xpoints,
-                          'tot_xpoints': w.tot_xpoints,
-                          'score': 0,
-                          'num_pass': w.num_pass, 'num_fail': w.num_fail,
-                          'streak': w.streak,
-                          'istep': w.istep + 1,
-                          'related': hanzi_words.get(w.word, []) }
+        words.append({ 'id': w.id, 'word': w.word,
+                       'book': w.book, 'chapter': w.chapter,
+                       'study_date': w.study_date.timestamp(),
+                       'next_study': w.next_study.timestamp(),
+                       'cur_xpoints': w.cur_xpoints,
+                       'tot_xpoints': w.tot_xpoints,
+                       'score': 0,
+                       'num_pass': w.num_pass, 'num_fail': w.num_fail,
+                       'streak': w.streak,
+                       'istep': w.istep + 1,
+                       'related': hanzi_words.get(w.word, []) })
+        word_set.update(w.word)
+        
     return words
 
 @main.route('/practice')
@@ -141,18 +143,19 @@ def practice():
     words = read_words(current_user.id, book)
     return render_template(
         'practice.html', user = current_user, book=book,
-        streak=current_user.streak, words=list(words.values()),
+        streak=current_user.streak, words=words,
         num_pass_daily = num_pass_daily, tot_steps = len(NEXT_STUDY))
 
 @main.route('/exam')
 @login_required
 def exam():
-    words = {}
+    words, word_set = [], set([])
     for w in Word.query.filter_by(user_id=current_user.id).filter(Word.streak >= 3).order_by(Word.next_study, Word.tot_xpoints).all():
-        if w.word in words: continue
+        if w.word in word_set: continue
+
         if w.study_date < datetime.utcnow() - timedelta(hours=24):
             w.cur_xpoints = 0
-        words[w.word] = { 'id': w.id, 'word': w.word,
+        words.append({ 'id': w.id, 'word': w.word,
                           'book': w.book, 'chapter': w.chapter,
                           'study_date': w.study_date.timestamp(),
                           'next_study': w.next_study.timestamp(),
@@ -162,12 +165,13 @@ def exam():
                           'num_pass': w.num_pass, 'num_fail': w.num_fail,
                           'streak': w.streak,
                           'istep': w.istep + 1,
-                          'related': hanzi_words.get(w.word, []) }
+                          'related': hanzi_words.get(w.word, []) })
+        word_set.update(w.word)
         
     num_pass_daily = session.get("num_pass_daily", 0)
     return render_template(
         'practice.html', user = current_user, book='',
-        streak=current_user.streak, words=list(words.values()),
+        streak=current_user.streak, words=words,
         num_pass_daily = num_pass_daily, tot_steps = len(NEXT_STUDY))
 
 @main.route('/review')
