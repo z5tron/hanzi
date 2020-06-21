@@ -9,6 +9,8 @@ from flask_migrate import Migrate, upgrade
 from app import create_app, db
 from app.models import User, Word, Progress, Score
 
+from sqlalchemy.sql.expression import func
+
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 migrate = Migrate(app, db)
 
@@ -374,7 +376,42 @@ def dump_old_db(dbname):
     for t in sorted(daily_stat.keys())[-10:]:
         print(t, daily_stat[t], file=sys.stderr)
     print("words: {}, progress: {}".format(len(words), len(progress)), file=sys.stderr)
-    
+
+@app.cli.command("cizu2zi")
+def conv_cizu2zi():
+    words = {}
+    for w in Word.query.filter(func.length(Word.word) <= 3).all():
+        words.setdefault((w.user_id, w.word, w.book, w.chapter), w)
+
+    print(f"read {len(words)} cizu")
+    del_ids = []
+    for w in Word.query.filter(func.length(Word.word) > 3).all():
+        cizu = w.word
+        can_delete = True
+        for zi in cizu:
+            k = (w.user_id, zi, w.book, w.chapter)
+            if k in words:
+                print(f"skip {zi}")
+            else:
+                print("adding ", zi, w.book, w.chapter)
+                w2 = Word(user_id=w.user_id, word = zi, book = w.book,
+                          chapter = w.chapter, study_date = w.study_date,
+                          cur_xpoints = w.cur_xpoints,
+                          tot_xpoints = w.tot_xpoints,
+                          num_pass = w.num_pass,
+                          num_fail = w.num_fail,
+                          streak = w.streak,
+                          istep = w.istep,
+                          next_study = w.next_study)
+                db.session.add(w2)
+                can_delete = False
+        db.session.commit()
+        if can_delete:
+            print(f"delete {cizu}, {w.id}")
+            del_ids.append(w.id)
+            db.session.delete(w)
+            db.session.commit()
+        
 # main
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8080, debug=True)
