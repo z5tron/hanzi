@@ -194,20 +194,21 @@ def exam():
 @login_required
 def review():
     num_pass_daily = session.get("num_pass_daily", 0)
-    words = []
+    words = {}
     t0 = datetime.utcnow() - timedelta(days=7, hours=2)
     for w in Word.query.filter_by(user_id=current_user.id).filter(Word.cur_xpoints<0).filter(Word.study_date >= t0).order_by(Word.study_date, Word.tot_xpoints, Word.chapter).limit(200):
-        words.append({ 'id': w.id, 'word': w.word,
-                       'book': w.book, 'chapter': w.chapter,
-                       'study_date': w.study_date.timestamp(),
-                       'next_study': w.next_study.timestamp(),
-                       'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
-                       'score': 0, 'timezone_offset': current_user.timezone_offset,
-                       'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
-                       'related': hanzi_words.get(w.word, []) })
+        words.setdefault(w.word, w)
+        # words.append({ 'id': w.id, 'word': w.word,
+        #                'book': w.book, 'chapter': w.chapter,
+        #                'study_date': w.study_date.timestamp(),
+        #                'next_study': w.next_study.timestamp(),
+        #                'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
+        #                'score': 0, 'timezone_offset': current_user.timezone_offset,
+        #                'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
+        #                'related': hanzi_words.get(w.word, []) })
     # words = json.dumps(words)
     return render_template(
-        'review.html', user = current_user, streak=current_user.streak, words=words,
+        'review.html', user = current_user, streak=current_user.streak, words=list(words.values()),
         num_pass_daily = num_pass_daily)
 
 # @main.route('/words/<book>')
