@@ -405,6 +405,8 @@ def conv_cizu2zi():
                           next_study = w.next_study)
                 db.session.add(w2)
                 can_delete = False
+                words[k] = w2
+
         db.session.commit()
         if can_delete:
             print(f"delete {cizu}, {w.id}")
