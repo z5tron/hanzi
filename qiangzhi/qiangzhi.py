@@ -413,8 +413,8 @@ def conv_cizu2zi():
             del_ids.append(w.id)
             db.session.delete(w)
             db.session.commit()
-        
+
 # main
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8080, debug=True)
-    
+

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from os import path, getcwd, chdir
 import subprocess, uuid
 import pytz
+import random
 
 from flask import jsonify, render_template, render_template_string, session, redirect, url_for, request, send_file
 from . import main
@@ -141,6 +142,21 @@ def practice():
     book = request.args.get('book', None)
     num_pass_daily = session.get("num_pass_daily", 0)
     words = read_words(current_user.id, book)
+    random.shuffle(words)
+    return render_template(
+        'practice.html', user = current_user, book=book,
+        streak=current_user.streak, words=words,
+        num_pass_daily = num_pass_daily, tot_steps = len(NEXT_STUDY))
+
+@main.route('/expand')
+@login_required
+def exam_expand():
+    book = request.args.get('book', None)
+    num_pass_daily = session.get("num_pass_daily", 0)
+    words = read_words(current_user.id, book, nlimit=3000)
+    words = sorted(list(filter(lambda x: x['streak'] < 3, words)),
+                   key = lambda x: x['num_pass'], reverse=True)
+    
     return render_template(
         'practice.html', user = current_user, book=book,
         streak=current_user.streak, words=words,
