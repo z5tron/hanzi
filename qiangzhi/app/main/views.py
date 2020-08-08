@@ -153,8 +153,9 @@ def practice():
 def exam_expand():
     book = request.args.get('book', None)
     num_pass_daily = session.get("num_pass_daily", 0)
+    t0 = datetime.utcnow()
     words = read_words(current_user.id, book, nlimit=3000)
-    words = sorted(list(filter(lambda x: x['streak'] < 3, words)),
+    words = sorted(list(filter(lambda x: x['streak'] < 3 and x['next_study'] < t0, words)),
                    key = lambda x: x['num_pass'], reverse=True)
     
     return render_template(
