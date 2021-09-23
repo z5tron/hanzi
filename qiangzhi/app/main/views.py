@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from os import path, getcwd, chdir
 import subprocess, uuid
 import pytz
+import math
 import random
 
 from flask import jsonify, render_template, render_template_string, session, redirect, url_for, request, send_file
@@ -112,11 +113,9 @@ def user():
 def read_words(user_id, book = None, nlimit = 500, ignore_recent=0):
     words, word_set = [], set([])
     t0 = datetime.utcnow()
-    wl = Word.query.filter_by(user_id=user_id).filter(Word.next_study < t0 + timedelta(hours=2))
+    wl = Word.query.filter_by(user_id=user_id).filter(Word.next_study < t0 + timedelta(hours=2)).filter(Word.study_date < t0 - timedelta(hours=abs(ignore_recent)))
     if book:
         wl = wl.filter_by(book=book)
-    if ignore_recent:
-        wl = wl.filter_by(study_date < t0 - timedelta(hours=np.abs(ignore_recent)))
         
     for w in wl.order_by(Word.tot_xpoints, desc(Word.next_study)):
         if len(words) >= nlimit: break
