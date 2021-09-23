@@ -109,12 +109,15 @@ def user():
     return render_template('user.html', user=user, books=sorted(books), num_due = num_due)
 
 
-def read_words(user_id, book = None, nlimit = 500):
+def read_words(user_id, book = None, nlimit = 500, ignore_recent=0):
     words, word_set = [], set([])
-    t0 = datetime.utcnow() + timedelta(hours=4)
-    wl = Word.query.filter_by(user_id=user_id).filter(Word.next_study < t0)
+    t0 = datetime.utcnow()
+    wl = Word.query.filter_by(user_id=user_id).filter(Word.next_study < t0 + timedelta(hours=2))
     if book:
         wl = wl.filter_by(book=book)
+    if ignore_recent:
+        wl = wl.filter_by(study_date < t0 - timedelta(hours=np.abs(ignore_recent)))
+        
     for w in wl.order_by(Word.tot_xpoints, desc(Word.next_study)):
         if len(words) >= nlimit: break
         # skip the know words
@@ -142,7 +145,7 @@ def read_words(user_id, book = None, nlimit = 500):
 def practice():
     book = request.args.get('book', None)
     num_pass_daily = session.get("num_pass_daily", 0)
-    words = read_words(current_user.id, book)
+    words = read_words(current_user.id, book=book, ignore_recent=2)
     random.shuffle(words)
     return render_template(
         'practice.html', user = current_user, book=book,
