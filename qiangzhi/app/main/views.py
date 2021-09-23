@@ -20,13 +20,14 @@ NEXT_STUDY = [1,1,1,1,2,2,3,3,5,5,7,10,30,45,60,60,90,180,365,365,365]
 
 @main.route('/')
 def index():
+    session_date = int(datetime.utcnow().strftime("%Y%m%d"))
     users = []
     for u in User.query.all():
-        s = Score.query.filter_by(user_id=u.id, study_y4md=u.session_date).first()
+        s = Score.query.filter_by(user_id=u.id, study_y4md=session_date).first()
  
         st = { 
             'name': u.name, 'tot_xpoints': u.tot_xpoints,
-            'streak': u.streak, 'session_date': u.session_date,
+            'streak': u.streak, 'session_date': session_date,
             'num_pass': 0 if not s else s.num_pass,
             'num_fail': 0 if not s else s.num_fail,
             'num_thumb_up': 0 if not s else s.num_thumb_up,
@@ -97,9 +98,9 @@ def user():
     # print(score.id, score.num_pass)
     user.cur_xpoints = 0 if not score else score.xpoints
     num_pass_daily = 0 if not score else score.num_pass
-    cur_loc_t = cur_t - timedelta(minutes=user.timezone_offset)
-    cur_loc_y4md = cur_loc_t.year*10000 + cur_loc_t.month*100 + cur_loc_t.day
-    user.session_date = cur_loc_y4md
+    # cur_loc_t = cur_t - timedelta(minutes=user.timezone_offset)
+    # cur_loc_y4md = cur_loc_t.year*10000 + cur_loc_t.month*100 + cur_loc_t.day
+    # user.session_date = cur_loc_y4md
     db.session.add(user)
     db.session.commit()
     t0 = cur_t + timedelta(hours=4)
@@ -198,16 +199,15 @@ def review():
     words = {}
     t0 = datetime.utcnow() - timedelta(days=7, hours=2)
     for w in Word.query.filter_by(user_id=current_user.id).filter(Word.cur_xpoints<0).filter(Word.study_date >= t0).order_by(Word.study_date, Word.tot_xpoints, Word.chapter).limit(200):
-        words.setdefault(w.word, w)
-        # words.append({ 'id': w.id, 'word': w.word,
-        #                'book': w.book, 'chapter': w.chapter,
-        #                'study_date': w.study_date.timestamp(),
-        #                'next_study': w.next_study.timestamp(),
-        #                'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
-        #                'score': 0, 'timezone_offset': current_user.timezone_offset,
-        #                'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
-        #                'related': hanzi_words.get(w.word, []) })
-    # words = json.dumps(words)
+        words.setdefault(w.word, {
+            'id': w.id, 'word': w.word,
+            'book': w.book, 'chapter': w.chapter,
+            'study_date': w.study_date.timestamp(),
+            'next_study': w.next_study.timestamp(),
+            'cur_xpoints': w.cur_xpoints, 'tot_xpoints': w.tot_xpoints,
+            'score': 0, 'timezone_offset': current_user.timezone_offset,
+            'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
+            'related': hanzi_words.get(w.word, []) })
     return render_template(
         'review.html', user = current_user, streak=current_user.streak, words=list(words.values()),
         num_pass_daily = num_pass_daily)
@@ -237,13 +237,9 @@ def save_words():
                  study_date = datetime.utcnow(),
                  xpoints = data['xpoints'])
     db.session.add(p)
-    cur_t = datetime.now()
+    cur_t = datetime.utcnow()
     for wbi in Word.query.filter_by(word=w['word']).filter_by(user_id=current_user.id):
-        session_date = int(wbi.study_date.strftime("%Y%m%d"))
-        if session_date == current_user.session_date:
-            wbi.cur_xpoints += data['xpoints']
-        else:
-            wbi.cur_xpoints = data['xpoints']
+        wbi.cur_xpoints += data['xpoints']
         wbi.study_date = cur_t
         wbi.tot_xpoints += data['xpoints']
         # fix unitialized streak
@@ -271,10 +267,11 @@ def save_words():
         w['next_study'] = wbi.next_study.timestamp()
         w['xpoints'] = wbi.tot_xpoints
         w['istep'] = wbi.istep
-        
-    score = Score.query.filter_by(user_id=current_user.id, study_y4md=current_user.session_date).first()
+
+    score_date = int(cur_t.strftime("%Y%m%d"))
+    score = Score.query.filter_by(user_id=current_user.id, study_y4md=score_date).first()
     if not score:
-        score = Score(user_id=current_user.id, study_y4md=current_user.session_date)
+        score = Score(user_id=current_user.id, study_y4md=score_date)
         db.session.add(score)
         db.session.commit()
     score.xpoints += data['xpoints']
