@@ -16,7 +16,7 @@ from sqlalchemy import desc
 from sqlalchemy.sql import func
 
 # the next practice date will be days later
-NEXT_STUDY = [1,1,1,1,2,2,3,3,5,5,7,10,30,45,60,60,90,180,365,365,365]
+NEXT_STUDY = [2,2,2,3,3,4,4,5,6,7,9,10,30,45,60,60,90,90,180,240,365,365]
 
 
 @main.route('/')
