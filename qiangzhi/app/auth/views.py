@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import render_template, redirect, request, url_for, flash, session
 from flask_login import login_user, logout_user, current_user
 
@@ -24,6 +26,7 @@ def login():
             login_user(user, form.remember_me.data)
             session['username'] = user.username
             user.timezone_offset = form.timezone_offset.data
+            user.session_date = int(datetime.utcnow().strftime("%Y%m%d"))
             db.session.add(user)
             db.session.commit()
             next = request.args.get('next')

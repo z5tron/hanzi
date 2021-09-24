@@ -87,14 +87,23 @@ def user():
     if not username:
         return redirect(url_for('auth.login'))
     user = User.query.filter_by(username=username).first_or_404()
-    books = []
-    for w in db.session.query(Word.book).filter(Word.user_id==current_user.id).distinct():
-        books.append(w.book)
-    score = db.session.query(func.sum(Score.xpoints)).filter(Score.user_id==user.id).first()
-    user.tot_xpoints = score[0]
 
     cur_t = datetime.utcnow()
     cur_y4md = cur_t.year*10000+cur_t.month*100+cur_t.day
+
+    books = {}
+    for w in Word.query.filter_by(user_id=current_user.id): #db.session.query(Word.book).filter(Word.user_id==current_user.id).distinct():
+        books.setdefault(w.book, {'done': 0, 'due': 0})
+        if w.next_study > cur_t:
+            books[w.book]['done'] += 1
+        else:
+            books[w.book]['due'] += 1
+            
+    score = db.session.query(func.sum(Score.xpoints)).filter(Score.user_id==user.id).first()
+    user.tot_xpoints = score[0]
+    
+    # user.session_date = cur_y4md
+    
     score = Score.query.filter_by(user_id=user.id, study_y4md=cur_y4md).first()
     # print(score.id, score.num_pass)
     user.cur_xpoints = 0 if not score else score.xpoints
@@ -107,7 +116,7 @@ def user():
     t0 = cur_t + timedelta(hours=4)
     num_due = Word.query.filter_by(user_id=user.id).filter(Word.next_study < t0).count()
     session['num_pass_daily'] = num_pass_daily
-    return render_template('user.html', user=user, books=sorted(books), num_due = num_due)
+    return render_template('user.html', user=user, books=books, num_due = num_due)
 
 
 def read_words(user_id, book = None, nlimit = 500, ignore_recent=0):

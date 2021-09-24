@@ -57,7 +57,7 @@
 		    <button href="#" class="submit-ans btn btn-danger" role="button" v-on:click="adj_score(w, -1)"><span class="glyphicon glyphicon-thumbs-down"></span></button>
 		    
 		</p>
-		<p class="word-info">Book: <span>[[ w.book ]]: [[ w.chapter ]]</span></br> XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.tot_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>.</br> Study: <span>[[ from_now(w) ]]</span>
+		<p class="word-info">Book: <span>[[ w.book ]]: [[ w.chapter ]]</span></br> XP: <span :class="['text-' + word_status(w)]"><strong>[[ w.tot_xpoints ]]</strong></span>, P/F = <span :class="['text-' + word_status(w)]"><strong>[[ w.num_pass ]]</strong></span> / <span :class="['text-' + word_status(w)]"><strong>[[ w.num_fail ]]</strong></span>, <i class="typcn typcn-flash">[[ w.streak ]]</i>. (id=[[ w.id ]])</br> Study: <span>[[ from_now(w) ]]</span>
 		</br> Next Study ([[ w.istep ]]/[[ tot_steps ]]): <span>[[ next_study(w) ]]</span></p>
 	    </div>
 	</div>

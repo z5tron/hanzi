@@ -24,8 +24,8 @@
 	<p><a href="/review">Review</a></p>
 	<p><a href="/import-book">Import Book</a></p>
 	<ul>
-	    {% for book in books %}
-	    <li><a href="{{ url_for('main.practice', book=book) }}">{{ book }}</a></li>
+	    {% for book,cnt in books.items() %}
+	    <li><a href="{{ url_for('main.practice', book=book) }}">{{ book }} ({{ cnt['due'] }}, {{ cnt['done'] }})</a></li>
 	    {% endfor %}
 	</ul>
 	<p>Member since {{ moment(user.first_study).format('L') }},
