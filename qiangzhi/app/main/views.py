@@ -43,7 +43,7 @@ def index():
         users.append(st)
 
     users = sorted(users, key=lambda x: (x['session_date'], x['cur_xpoints']), reverse=True)
-    return render_template("index.html", users=users)
+    return render_template("index.html", users=users, session_date=session_date)
 
 @main.route('/import-book')
 @login_required

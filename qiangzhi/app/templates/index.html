@@ -6,39 +6,40 @@
     <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}</h1>
     {% if current_user.is_authenticated %}
     {% endif %}
-    <table class="table table-hover">
-	<thead>
-	    <tr>
-		<th>Rank</th>
-		<th>Name</th>
-		<th>Pass</th>
-		<th>Fail</th>
-		<th>XP</th>
-		<th>Streak</th>
-		<th>Total XP</th>
-		<th>Words (streak>=3)</th>
-		<th>Due</th>
-	    </tr>
-	</thead>
-
-	<tbody>
-	    {% for u in users %}
-	    <tr>
-		<td>{{ loop.index }}
-		    {% if loop.index <= 1 %}<i class="typcn typcn-thumbs-up"></i>{% endif %}
-		    {% if loop.index <= 2 %}<i class="typcn typcn-thumbs-up"></i>{% endif %}
-		</td>
-		<td>{{ u.name }}</td>
-		<td>{{ u.num_pass }}</td>
-		<td>{{ u.num_fail }}</td>
-		<td>{{ u.cur_xpoints }}</td>
-		<td>{{ u.streak }}</td>
-		<td>{{ u.tot_xpoints }}</td>
-		<td>{{ u['3streak'] }}</td>
-		<td>{{ u.num_due }}</td>
-	    </tr>
-	    {% endfor %}
-	</tbody>
-  </table>
 </div>
+<table class="table table-hover">
+    <thead>
+	<tr>
+	    <th>Rank</th>
+	    <th>Name</th>
+	    <th>Pass</th>
+	    <th>Fail</th>
+	    <th>XP</th>
+	    <th>Streak</th>
+	    <th>Total XP</th>
+	    <th>Words (streak>=3)</th>
+	    <th>Due</th>
+	</tr>
+    </thead>
+
+    <tbody>
+	{% for u in users %}
+	<tr>
+	    <td>{{ loop.index }}
+		{% if loop.index <= 1 %}<i class="typcn typcn-thumbs-up"></i>{% endif %}
+		{% if loop.index <= 2 %}<i class="typcn typcn-thumbs-up"></i>{% endif %}
+	    </td>
+	    <td>{{ u.name }}</td>
+	    <td>{{ u.num_pass }}</td>
+	    <td>{{ u.num_fail }}</td>
+	    <td>{{ u.cur_xpoints }}</td>
+	    <td>{{ u.streak }}</td>
+	    <td>{{ u.tot_xpoints }}</td>
+	    <td>{{ u['3streak'] }}</td>
+	    <td>{{ u.num_due }}</td>
+	</tr>
+	{% endfor %}
+    </tbody>
+</table>
+<div>Session Date: {{ session_date }}</div>
 {% endblock %}
