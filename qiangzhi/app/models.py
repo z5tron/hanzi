@@ -45,6 +45,7 @@ class User(UserMixin, db.Model):
 
     def ping(self):
         t = datetime.utcnow()
+    
         if self.last_study.year != t.year or \
            self.last_study.month != t.month or \
            self.last_study.day != t.day:

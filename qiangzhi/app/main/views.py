@@ -101,7 +101,13 @@ def user():
             
     score = db.session.query(func.sum(Score.xpoints)).filter(Score.user_id==user.id).first()
     user.tot_xpoints = score[0]
-    
+
+    last_study = db.session.query(func.max(Progress.study_date)).filter(Progress.user_id==user.id).first()[0]
+    if last_study.strftime("%Y%m%d") < (cur_t - timedelta(days=1)).strftime("%Y%m%d"):
+        user.streak = 1
+    elif last_study.strftime("%Y%m%d") == (cur_t - timedelta(days=1)).strftime("%Y%m%d"):
+        user.streak += 1
+        
     # user.session_date = cur_y4md
     
     score = Score.query.filter_by(user_id=user.id, study_y4md=cur_y4md).first()
@@ -116,6 +122,7 @@ def user():
     t0 = cur_t + timedelta(hours=4)
     num_due = Word.query.filter_by(user_id=user.id).filter(Word.next_study < t0).count()
     session['num_pass_daily'] = num_pass_daily
+    
     return render_template('user.html', user=user, books=books, num_due = num_due)
 
 
@@ -131,7 +138,7 @@ def read_words(user_id, book = None, nlimit = 500, ignore_recent=0):
         # skip the know words
         if w.word in word_set: continue
         # reset the points
-        if w.study_date < datetime.utcnow() - timedelta(hours=24):
+        if w.study_date < datetime.utcnow() - timedelta(hours=4):
             w.cur_xpoints = 0
         words.append({ 'id': w.id, 'word': w.word,
                        'book': w.book, 'chapter': w.chapter,
@@ -292,6 +299,10 @@ def save_words():
     elif data['xpoints'] < 0: score.num_fail += 1
     db.session.add(score)
 
+    #user = User.query.filter_by(id=current_user.id).first()
+    #user.last_study = cur_t
+    #db.session.add(user)
+    
     db.session.commit()
 
     return jsonify(w)

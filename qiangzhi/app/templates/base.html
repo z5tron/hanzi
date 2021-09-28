@@ -29,9 +29,9 @@
     <div id="navbar" class="navbar-collapse collapse">
       {% if current_user.is_authenticated %}
       <ul class="nav navbar-nav navbar-right">
-	<li><a href="{{ url_for('main.user') }}">{{ current_user.name }}</a></li>
-	<li><a href="#"><i class="typcn typcn-weather-sunny"><span class="badge">{{ current_user.cur_xpoints}}</span></i></a></li>
-	<li><a href="#"><i class="typcn typcn-flash"><span class="badge">{{ current_user.streak }}</span></i></a></li>
+	  <li><a href="{{ url_for('main.user') }}">{{ current_user.name }}</a></li>
+	  <!-- li><a href="#"><i class="typcn typcn-weather-sunny"><span class="badge">{{ current_user.cur_xpoints}}</span></i></a></li --->
+	  <li><a href="#"><i class="typcn typcn-flash"><span class="badge">{{ current_user.streak }}</span></i></a></li>
 	<li><a href="{{ url_for('auth.logout') }}"><span class="glyphicon glyphicon-log-out"></span> Log Out</a></li>
       </ul>
       {% else %}
