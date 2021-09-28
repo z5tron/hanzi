@@ -129,6 +129,13 @@ def user():
 def read_words(user_id, book = None, nlimit = 500, ignore_recent=0):
     words, word_set = [], set([])
     t0 = datetime.utcnow()
+
+    ## check if no "helping" words
+    # wl = Word.query.filter_by(user_id=user_id)
+    # for w in wl:
+    #     if len(w.word) == 1 and w.word not in hanzi_words:
+    #         print(w.word)
+            
     wl = Word.query.filter_by(user_id=user_id).filter(Word.next_study < t0 + timedelta(hours=2)).filter(Word.study_date < t0 - timedelta(hours=abs(ignore_recent)))
     if book:
         wl = wl.filter_by(book=book)
