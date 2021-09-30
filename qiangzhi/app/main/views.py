@@ -22,17 +22,21 @@ NEXT_STUDY = [2,2,2,3,3,4,4,5,6,7,9,10,30,45,60,60,90,90,180,240,365,365]
 @main.route('/')
 def index():
     session_date = int(datetime.utcnow().strftime("%Y%m%d"))
+    cut_off = int((datetime.utcnow() - timedelta(hours=24)).strftime("%Y%m%d"))
     users = []
     for u in User.query.all():
         s = Score.query.filter_by(user_id=u.id, study_y4md=session_date).first()
- 
+        num_pass = db.session.query(func.sum(Score.num_pass)).filter_by(user_id=u.id).filter(Score.study_y4md >= cut_off).first()[0]
+        num_fail = db.session.query(func.sum(Score.num_fail)).filter_by(user_id=u.id).filter(Score.study_y4md >= cut_off).first()[0]
+        cur_xpoints = db.session.query(func.sum(Score.xpoints)).filter_by(user_id=u.id).filter(Score.study_y4md >= cut_off).first()[0]
+
         st = { 
             'name': u.name, 'tot_xpoints': u.tot_xpoints,
             'streak': u.streak, 'session_date': session_date,
-            'num_pass': 0 if not s else s.num_pass,
-            'num_fail': 0 if not s else s.num_fail,
-            'num_thumb_up': 0 if not s else s.num_thumb_up,
-            'cur_xpoints': 0 if not s else s.xpoints,
+            'num_pass': num_pass or 0,
+            'num_fail': num_fail or 0,
+            'num_thumb_up': 0,
+            'cur_xpoints': cur_xpoints or 0,
         }
         # c = Word.query.filter_by(user_id=u.id).filter(Word.streak >= 3).filter(func.length(Word.word) < 4).count()
         c = db.session.query(Word.word.distinct()).filter_by(user_id=u.id).filter(Word.streak >= 3).filter(func.length(Word.word) < 4).count()
