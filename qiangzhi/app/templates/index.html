@@ -19,6 +19,7 @@
 	    <th>Total XP</th>
 	    <th>Words (streak>=3)</th>
 	    <th>Due</th>
+	    <th>Last Study</th>
 	</tr>
     </thead>
 
@@ -37,9 +38,10 @@
 	    <td>{{ u.tot_xpoints }}</td>
 	    <td>{{ u['3streak'] }}</td>
 	    <td>{{ u.num_due }}</td>
+	    <td>{{ moment(u.last_study).fromNow() }}</td>
 	</tr>
 	{% endfor %}
     </tbody>
 </table>
-<div>Session Date: {{ session_date }}</div>
+<div>Session Date: {{ moment(utcnow).format('LLL') }}</div>
 {% endblock %}

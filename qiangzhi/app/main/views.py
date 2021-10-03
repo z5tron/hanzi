@@ -21,8 +21,9 @@ NEXT_STUDY = [2,2,2,3,3,4,4,5,6,7,9,10,30,45,60,60,90,90,180,240,365,365]
 
 @main.route('/')
 def index():
-    session_date = int(datetime.utcnow().strftime("%Y%m%d"))
-    cut_off = int((datetime.utcnow() - timedelta(hours=24)).strftime("%Y%m%d"))
+    utcnow = datetime.utcnow()
+    session_date = int(utcnow.strftime("%Y%m%d"))
+    cut_off = int((utcnow - timedelta(hours=24)).strftime("%Y%m%d"))
     users = []
     for u in User.query.all():
         s = Score.query.filter_by(user_id=u.id, study_y4md=session_date).first()
@@ -37,17 +38,18 @@ def index():
             'num_fail': num_fail or 0,
             'num_thumb_up': 0,
             'cur_xpoints': cur_xpoints or 0,
+            'last_study': u.last_study,
         }
         # c = Word.query.filter_by(user_id=u.id).filter(Word.streak >= 3).filter(func.length(Word.word) < 4).count()
         c = db.session.query(Word.word.distinct()).filter_by(user_id=u.id).filter(Word.streak >= 3).filter(func.length(Word.word) < 4).count()
         st['3streak'] = c
-        t0 = datetime.utcnow() + timedelta(hours=4)
+        t0 = utcnow + timedelta(hours=4)
         st['num_due'] = Word.query.filter_by(user_id=u.id).filter(Word.next_study < t0).count()
         
         users.append(st)
 
     users = sorted(users, key=lambda x: (x['session_date'], x['cur_xpoints']), reverse=True)
-    return render_template("index.html", users=users, session_date=session_date)
+    return render_template("index.html", users=users, session_date=session_date, utcnow=utcnow)
 
 @main.route('/import-book')
 @login_required
