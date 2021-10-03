@@ -239,9 +239,11 @@ def review():
             'score': 0, 'timezone_offset': current_user.timezone_offset,
             'num_pass': w.num_pass, 'num_fail': w.num_fail, 'streak': w.streak,
             'related': hanzi_words.get(w.word, []) })
+    print("Words:", len(words))
+    words_list = sorted(list(words.values()), key=lambda x: x['study_date'], reverse=True)
     return render_template(
-        'review.html', user = current_user, streak=current_user.streak, words=list(words.values()),
-        num_pass_daily = num_pass_daily)
+        'review.html', user = current_user, streak=current_user.streak,
+        words=list(words_list), num_pass_daily = num_pass_daily)
 
 # @main.route('/words/<book>')
 # def words(book):
@@ -270,7 +272,7 @@ def save_words():
     db.session.add(p)
     cur_t = datetime.utcnow()
     for wbi in Word.query.filter_by(word=w['word']).filter_by(user_id=current_user.id):
-        wbi.cur_xpoints += data['xpoints']
+        wbi.cur_xpoints = data['xpoints']
         wbi.study_date = cur_t
         wbi.tot_xpoints += data['xpoints']
         # fix unitialized streak
