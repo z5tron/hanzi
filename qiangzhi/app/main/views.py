@@ -16,7 +16,7 @@ from sqlalchemy import desc
 from sqlalchemy.sql import func
 
 # the next practice date will be days later
-NEXT_STUDY = [2,2,2,3,3,4,4,5,6,7,9,10,30,45,60,60,90,90,180,240,365,365]
+NEXT_STUDY = [2,2,3,3,4,4,6,6,8,10,12,16,20,45,60,90,120]
 
 
 @main.route('/')
@@ -270,6 +270,8 @@ def save_words():
                  study_date = datetime.utcnow(),
                  xpoints = data['xpoints'])
     db.session.add(p)
+    clamp = lambda val, minv, maxv: max(min(val, maxv), minv)
+    
     cur_t = datetime.utcnow()
     for wbi in Word.query.filter_by(word=w['word']).filter_by(user_id=current_user.id):
         wbi.cur_xpoints = data['xpoints']
@@ -286,12 +288,12 @@ def save_words():
         elif data['xpoints'] < 0:
             wbi.num_fail += 1
             wbi.streak = 0
-            wbi.istep -=2
-        wbi.istep = min(max(0, wbi.istep), len(NEXT_STUDY)-1)
+            wbi.istep -=1
+        istep = clamp(wbi.istep, 0, len(NEXT_STUDY)-1)
         if data['xpoints'] < 0:
             wbi.next_study = cur_t + timedelta(days=1)
         else:
-            wbi.next_study = cur_t + timedelta(days=NEXT_STUDY[wbi.istep])
+            wbi.next_study = cur_t + timedelta(days=NEXT_STUDY[istep])
             
         db.session.add(wbi)
 
