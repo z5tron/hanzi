@@ -43,6 +43,10 @@
     margin: 2em 5px 2em 5px;
     height: 40px;
 }
+
+#progress-rest {
+  height: 4ex;
+}
      </style>
   </head>
 
@@ -55,7 +59,7 @@
                   <div class="progress"><div class="progress-bar" id="bar2" roll="progressbar" style="width: 0%" aria-valuenow="55" aria-valuemin="0" aria-valuemax="100"></div></div>
                   <div class="progress"><div class="progress-bar" id="bar3" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
                   <div class="progress"><div class="progress-bar" id="bar4" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
-                  <div class="progress"><div class="progress-bar" id="bar5" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
+                  <div class="progress" id="progress-rest"><div class="progress-bar bg-warning" id="bar-rest" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
                   <div>
                     <audio id="nhl32horns" src="nhl-horns-2023-32x20sec.mp3" preload></audio>
                     <audio id="alarm995" src="mixkit-classic-alarm-995.wav" preload></audio>
@@ -273,6 +277,10 @@ function updateProgressBars() {
     var pct = Math.max(0, Math.min(100, tInSession * 100 / timeEachPractice));
     console.log("set ", pbar, 'tot seconds', timePassed);
     document.getElementById(pbar).style.width = Math.ceil(pct) + '%';
+
+    var rest_sec = Math.max(0, (timeEachSession - tInSession) * 100 / timeEachBreak);
+    if (rest_sec > 100 || rest_sec < 0) rest_sec = 0;
+    document.getElementById('bar-rest').style.width=rest_sec + '%';
   }
   if (timePassed <= timeLimit) setTimeout(updateProgressBars, 1000);
 }
