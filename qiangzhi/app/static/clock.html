@@ -50,6 +50,7 @@
     <div class="container-xl">
         <div class="row align-items-center">
             <div class="col-lg-4">
+                  <div class="progress"><div class="progress-bar" id="bar0" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
                   <div class="progress"><div class="progress-bar" id="bar1" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
                   <div class="progress"><div class="progress-bar" id="bar2" roll="progressbar" style="width: 0%" aria-valuenow="55" aria-valuemin="0" aria-valuemax="100"></div></div>
                   <div class="progress"><div class="progress-bar" id="bar3" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
@@ -102,19 +103,19 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
   <script>
-var numSessions = 5;
-var sessionPracticeSec = 45;
-    var musicSec = 20;
-    var sessionTot = sessionPracticeSec + musicSec;
-    var waitFirst = 5;
-    var totSeconds = -waitFirst;
+var totSession = 5;
+var curSession = -1;
+var timeBeforePractice = 5;
+var timeEachPractice = 45;
+var timeEachBreak    = 20;
+var timeEachSession = timeEachPractice + timeEachBreak;
 
-    var segmentEndTime;
+var horn_audio = null;
 
 var width = 700,
   height = 700,
   timePassed = 0,
-  timeLimit = numSessions * sessionTot + waitFirst ;
+  timeLimit = timeBeforePractice + totSession * timeEachSession;
 
 var fields = [{
   value: timeLimit,
@@ -187,8 +188,7 @@ function updateCountDown() {
 
 }
 
-var alarm995 = document.getElementById('alarm995');
-
+var alarm995 = null; 
 
 function pulseText() {
   back.classed("pulse", true);
@@ -250,33 +250,39 @@ function arcTween(b) {
   };
 }
 
-function setProgressBar() {
-    if (totSeconds == -2) alarm995.play();
+function updateProgressBars() {
+  curSession = Math.trunc( (timePassed - timeBeforePractice) / timeEachSession );
+  if (curSession >= 0 && curSession < totSession) {
+    var tInSession = timePassed - timeBeforePractice - curSession * timeEachSession;
+    console.log("time in this session:", tInSession);
 
-    totSeconds += 1;
-    
-    if (totSeconds >= 0) {
-        var t = totSeconds % sessionTot;
-        var pbar = 'bar' + (Math.trunc(totSeconds / sessionTot + 1));
-        console.log("set ", pbar, 'tot seconds', totSeconds);
-        document.getElementById(pbar).style.width = Math.ceil((t + 1) * 100/ sessionPracticeSec) + '%';
+    if (tInSession > timeEachPractice) { // play or playing NHL horn
+      if (horn_audio === null) {
+        var i = Math.floor(Math.random() * 32);
+        var audio_id = 'horn' + i.toString().padStart(3, '0');
+        horn_audio = document.getElementById(audio_id);
+        horn_audio.play();
+        console.log("nhl plays ", audio_id);
+      } else { // playing
 
-        if (t >= sessionPracticeSec && !segmentEndTime) {
-            var i = Math.floor(Math.random() * 32);
-            var audio_id = 'horn' + i.toString().padStart(3,'0');
-            // horn = new Audio(filename);
-            // horn.play();
-            var audio = document.getElementById(audio_id);
-            audio.play();
-            console.log("nhl plays ", audio_id);
-        }
+      }
+      if (horn_audio.ended) { horn_audio = null; }
     }
-    if (totSeconds <= numSessions*sessionTot) setTimeout(setProgressBar, 1000);
+
+    var pbar = 'bar' + curSession;
+    var pct = Math.max(0, Math.min(100, tInSession * 100 / timeEachPractice));
+    console.log("set ", pbar, 'tot seconds', timePassed);
+    document.getElementById(pbar).style.width = Math.ceil(pct) + '%';
+  }
+  if (timePassed <= timeLimit) setTimeout(updateProgressBars, 1000);
 }
 
 function start_practice() {
-    setTimeout(setProgressBar, 1000);
+    alarm995 = document.getElementById('alarm995');
+    alarm995.play();
+
     updateCountDown();
+    updateProgressBars();
 }
 
 function stop_practice() {
