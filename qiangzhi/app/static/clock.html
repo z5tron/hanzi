@@ -55,8 +55,44 @@
                   <div class="progress"><div class="progress-bar" id="bar3" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
                   <div class="progress"><div class="progress-bar" id="bar4" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
                   <div class="progress"><div class="progress-bar" id="bar5" roll="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div></div>
-                  <div><audio id="nhl32horns" src="nhl-horns-2023-32x20sec.mp3" preload></audio>
-                  <audio id="alarm995" src="mixkit-classic-alarm-995.wav" preload></audio></div>
+                  <div>
+                    <audio id="nhl32horns" src="nhl-horns-2023-32x20sec.mp3" preload></audio>
+                    <audio id="alarm995" src="mixkit-classic-alarm-995.wav" preload></audio>
+
+<audio id="horn00" src="/static/nhlhorns/out00.mp3" preload></audio>
+<audio id="horn01" src="/static/nhlhorns/out01.mp3" preload></audio>
+<audio id="horn02" src="/static/nhlhorns/out02.mp3" preload></audio>
+<audio id="horn03" src="/static/nhlhorns/out03.mp3" preload></audio>
+<audio id="horn04" src="/static/nhlhorns/out04.mp3" preload></audio>
+<audio id="horn05" src="/static/nhlhorns/out05.mp3" preload></audio>
+<audio id="horn06" src="/static/nhlhorns/out06.mp3" preload></audio>
+<audio id="horn07" src="/static/nhlhorns/out07.mp3" preload></audio>
+<audio id="horn08" src="/static/nhlhorns/out08.mp3" preload></audio>
+<audio id="horn09" src="/static/nhlhorns/out09.mp3" preload></audio>
+<audio id="horn10" src="/static/nhlhorns/out10.mp3" preload></audio>
+<audio id="horn11" src="/static/nhlhorns/out11.mp3" preload></audio>
+<audio id="horn12" src="/static/nhlhorns/out12.mp3" preload></audio>
+<audio id="horn13" src="/static/nhlhorns/out13.mp3" preload></audio>
+<audio id="horn14" src="/static/nhlhorns/out14.mp3" preload></audio>
+<audio id="horn15" src="/static/nhlhorns/out15.mp3" preload></audio>
+<audio id="horn16" src="/static/nhlhorns/out16.mp3" preload></audio>
+<audio id="horn17" src="/static/nhlhorns/out17.mp3" preload></audio>
+<audio id="horn18" src="/static/nhlhorns/out18.mp3" preload></audio>
+<audio id="horn19" src="/static/nhlhorns/out19.mp3" preload></audio>
+<audio id="horn20" src="/static/nhlhorns/out20.mp3" preload></audio>
+<audio id="horn21" src="/static/nhlhorns/out21.mp3" preload></audio>
+<audio id="horn22" src="/static/nhlhorns/out22.mp3" preload></audio>
+<audio id="horn23" src="/static/nhlhorns/out23.mp3" preload></audio>
+<audio id="horn24" src="/static/nhlhorns/out24.mp3" preload></audio>
+<audio id="horn25" src="/static/nhlhorns/out25.mp3" preload></audio>
+<audio id="horn26" src="/static/nhlhorns/out26.mp3" preload></audio>
+<audio id="horn27" src="/static/nhlhorns/out27.mp3" preload></audio>
+<audio id="horn28" src="/static/nhlhorns/out28.mp3" preload></audio>
+<audio id="horn29" src="/static/nhlhorns/out29.mp3" preload></audio>
+<audio id="horn30" src="/static/nhlhorns/out30.mp3" preload></audio>
+<audio id="horn31" src="/static/nhlhorns/out31.mp3" preload></audio>
+<audio id="horn32" src="/static/nhlhorns/out32.mp3" preload></audio>
+                  </div>
                   <div><button type="button" class="btn btn-primary" onclick="start_practice()">Start Practice</button>
                   <button type="button" class="btn btn-primary" onclick="stop_practice()">Stop</button></div>
                 </div>
@@ -73,16 +109,7 @@ var sessionPracticeSec = 45;
     var waitFirst = 5;
     var totSeconds = -waitFirst;
 
-    var audio = document.getElementById('nhl32horns');
     var segmentEndTime;
-
-audio.addEventListener('timeupdate', function() {
-    if (segmentEndTime && audio.currentTime >= segmentEndTime) {
-        audio.pause();
-        console.log("audio stopped at: ", audio.currentTime);
-        segmentEndTime = null;
-    }
-});
 
 var width = 700,
   height = 700,
@@ -235,15 +262,14 @@ function setProgressBar() {
         document.getElementById(pbar).style.width = Math.ceil((t + 1) * 100/ sessionPracticeSec) + '%';
 
         if (t >= sessionPracticeSec && !segmentEndTime) {
-            var i = Math.ceil(Math.random() * 32);
-            var filename = 'nhlhorns/out' + i.toString().padStart(3,'0') + '.mp3';
+            var i = Math.floor(Math.random() * 32);
+            var audio_id = 'horn' + i.toString().padStart(2,'0');
             console.log("play at", i*20, "(filename=", filename, ")");
             // horn = new Audio(filename);
             // horn.play();
-            segmentEndTime = i*20;
-            audio.currentTime = i*20 - 20;
+            var audio = document.getElementById(audio_id);
             audio.play();
-            console.log("nhl plays at", i*20-20, segmentEndTime);
+            console.log("nhl plays ", audio_id);
         }
     }
     if (totSeconds <= numSessions*sessionTot) setTimeout(setProgressBar, 1000);
