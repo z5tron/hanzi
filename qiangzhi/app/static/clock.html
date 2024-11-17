@@ -263,7 +263,7 @@ function setProgressBar() {
 
         if (t >= sessionPracticeSec && !segmentEndTime) {
             var i = Math.floor(Math.random() * 32);
-            var audio_id = 'horn' + i.toString().padStart(2,'0');
+            var audio_id = 'horn' + i.toString().padStart(3,'0');
             // horn = new Audio(filename);
             // horn.play();
             var audio = document.getElementById(audio_id);
