@@ -111,7 +111,7 @@ var totSession = 5;
 var curSession = -1;
 var timeBeforePractice = 5;
 var timeEachPractice = 45;
-var timeEachBreak    = 20;
+var timeEachBreak    = 22;
 var timeEachSession = timeEachPractice + timeEachBreak;
 
 var horn_audio = null;
@@ -239,7 +239,7 @@ function destroyTimer() {
 
     //
     
-    timePassed = 0;
+    // timePassed = 0;
 
     // setTimeout(updateCountDown, 30*1000);
     // updateCountDown();
@@ -255,10 +255,11 @@ function arcTween(b) {
 }
 
 function updateProgressBars() {
+  if (timePassed > timeLimit) return;
   curSession = Math.trunc( (timePassed - timeBeforePractice) / timeEachSession );
   if (curSession >= 0 && curSession < totSession) {
     var tInSession = timePassed - timeBeforePractice - curSession * timeEachSession;
-    console.log("time in this session:", tInSession);
+    // console.log("time in this session:", tInSession);
 
     if (tInSession > timeEachPractice) { // play or playing NHL horn
       if (horn_audio === null) {
@@ -275,7 +276,7 @@ function updateProgressBars() {
 
     var pbar = 'bar' + curSession;
     var pct = Math.max(0, Math.min(100, tInSession * 100 / timeEachPractice));
-    console.log("set ", pbar, 'tot seconds', timePassed);
+    // console.log("set ", pbar, 'tot seconds', timePassed);
     document.getElementById(pbar).style.width = Math.ceil(pct) + '%';
 
     var rest_sec = Math.max(0, (timeEachSession - tInSession) * 100 / timeEachBreak);
