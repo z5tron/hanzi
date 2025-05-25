@@ -50,10 +50,15 @@ def import_word(fname):
     for line in open(fname, 'r'):
         if line.find("#") >= 0: continue
         j = json.loads(line)
+        j.setdefault('created_date', '1970-01-01 12:00:00')
 
-        study_date = datetime.strptime(j['study_date'], "%Y-%m-%d %H:%M:%S.%f%z")
+        if isinstance(j['study_date'], str):
+            study_date = datetime.strptime(j['study_date'], "%Y-%m-%d %H:%M:%S.%f%z")
+        elif isinstance(j['study_date'], float):
+            study_date = datetime.utcfromtimestamp(j['study_date'])
+
         y4md = study_date.year * 10000 + study_date.month * 100 + study_date.day
-        if j['__tablename__'] == 'word':
+        if j.get('__tablename__', 'word') == 'word':
             created_date = datetime.strptime(j['created_date'], "%Y-%m-%d %H:%M:%S")
             w = Word(id = j['id'], word=j['word'], user_id=j['user_id'],
                      created_date=created_date,
@@ -64,6 +69,29 @@ def import_word(fname):
                      study_date = study_date)
             db.session.add(w)
     db.session.commit()
+
+@app.cli.command("import-word-list")
+@click.argument('fname')
+def import_word(fname):
+
+    Word.query.delete()
+    db.session.commit()
+    created_date = datetime.now()
+
+    for line in open(fname, 'r'):
+        if line.find("#") >= 0: continue
+        cols = line.split()
+        if (len(cols) != 3): continue
+        book, chapter, word = cols
+        study_date = datetime(1970, 1, 1)
+        y4md = study_date.year * 10000 + study_date.month * 100 + study_date.day
+        w = Word(word=word, user_id=2,
+                 created_date=created_date,
+                 book = book, chapter=chapter,
+                 study_date = study_date)
+        db.session.add(w)
+    db.session.commit()
+
 
 @app.cli.command("import-progress")
 @click.argument('fname')

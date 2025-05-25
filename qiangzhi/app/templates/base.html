@@ -4,7 +4,6 @@
 
 {% block head %}
 {{ super() }}
-{{ moment.include_jquery() }}
 {{ moment.include_moment() }}
 {% block favicon %}
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
@@ -71,7 +70,7 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
 <!-- script src="https://unpkg.com/vue@2.4.4/dist/vue.js"></script -->
 <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.26.0/moment-with-locales.min.js"></script>
